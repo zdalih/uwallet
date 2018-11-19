@@ -1,4 +1,4 @@
-package exceptions;
+package uwallet.exceptions;
 
 public class InsufficientFundsException extends Exception{
 

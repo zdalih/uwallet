@@ -1,8 +1,7 @@
-package test;
+package uwallet.test;
 
-import exceptions.InsufficientFundsException;
+import uwallet.exceptions.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import uwallet.Account;
 
