@@ -58,9 +58,9 @@ class AccountTest {
         Account accountUSD = new Account("chequing", "US");
         accountUSD.deposit(Double.MAX_VALUE);
         accountUSD.deposit(Double.MAX_VALUE);
-        accountUSD.deposit(1);
+        accountUSD.deposit(1.25);
 
-        assert("$359,538,626,972,463,141,629,054,847,463,408,713,596,141,135,051,689,993,197,834,953,606,314,521,560,057,077,521,179,117,265,533,756,343,080,917,907,028,764,928,468,642,653,778,928,365,536,935,093,407,075,033,972,099,821,153,102,564,152,490,980,180,778,657,888,151,737,016,910,267,884,609,166,473,806,445,896,331,617,118,664,246,696,549,595,652,408,289,446,337,476,354,361,838,599,762,500,808,052,368,249,716,737.00".equals(accountUSD.getFormattedBalance()));
+        assert("$359,538,626,972,463,141,629,054,847,463,408,713,596,141,135,051,689,993,197,834,953,606,314,521,560,057,077,521,179,117,265,533,756,343,080,917,907,028,764,928,468,642,653,778,928,365,536,935,093,407,075,033,972,099,821,153,102,564,152,490,980,180,778,657,888,151,737,016,910,267,884,609,166,473,806,445,896,331,617,118,664,246,696,549,595,652,408,289,446,337,476,354,361,838,599,762,500,808,052,368,249,716,737.25".equals(accountUSD.getFormattedBalance()));
     }
 
 
@@ -100,6 +100,20 @@ class AccountTest {
             return;
         }
 
+        assert(false);
+    }
+
+    @Test
+    public void accountCommitTest(){
+        Account accountUSD = new Account("chequing", "US");
+        accountUSD.deposit(1, "some cash");
+        accountUSD.deposit(2, "nahmsaying");
+        try{
+            accountUSD.withdraw(1, "lost it");
+        } catch (InsufficientFundsException err){}
+        accountUSD.deposit(3, "but made it back");
+        accountUSD.commit();
+        System.out.println(accountUSD);
         assert(false);
     }
 
