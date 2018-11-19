@@ -26,7 +26,7 @@ public abstract class Transaction {
 
     /**
      *
-     * @param amount double
+     * @param amount double - the value magnitude of the transaction. must be positive.
      *
      * @param account Account
      *
@@ -62,7 +62,7 @@ public abstract class Transaction {
      *
      * @return a string code representing the nature of the transaction such as CR for credit, DR for debit
      */
-    abstract String getTXSymbol();
+    abstract public String getTXSymbol();
 
     @Override
     public String toString(){

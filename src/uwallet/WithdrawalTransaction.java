@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class WithdrawalTransaction extends Transaction {
 
-    WithdrawalTransaction(double amount,  Account account, String... description){super(amount, account, description);}
+    public WithdrawalTransaction(double amount,  Account account, String... description){super(amount, account, description);}
 
     @Override
     BigDecimal applyTransaction() {
@@ -14,5 +14,5 @@ public class WithdrawalTransaction extends Transaction {
     }
 
     @Override
-    String getTXSymbol(){return "CR";}
+    public String getTXSymbol(){return "CR";}
 }
