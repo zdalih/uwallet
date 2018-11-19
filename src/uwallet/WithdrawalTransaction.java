@@ -8,7 +8,8 @@ public class WithdrawalTransaction extends Transaction {
 
     @Override
     BigDecimal applyTransaction() {
-        BigDecimal endingBalance = this.involvedAccount.getCurrentBalance().subtract(new BigDecimal(this.amount));
+        //Here we use Double.ToString() because BigDecimal constructor using double inherits the accuracy errors of doubles
+        BigDecimal endingBalance = this.involvedAccount.getCurrentBalance().subtract(new BigDecimal(Double.toString(this.amount)));
         return endingBalance;
     }
 

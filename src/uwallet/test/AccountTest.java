@@ -60,7 +60,7 @@ class AccountTest {
         accountUSD.deposit(Double.MAX_VALUE);
         accountUSD.deposit(1.25);
 
-        assert("$359,538,626,972,463,141,629,054,847,463,408,713,596,141,135,051,689,993,197,834,953,606,314,521,560,057,077,521,179,117,265,533,756,343,080,917,907,028,764,928,468,642,653,778,928,365,536,935,093,407,075,033,972,099,821,153,102,564,152,490,980,180,778,657,888,151,737,016,910,267,884,609,166,473,806,445,896,331,617,118,664,246,696,549,595,652,408,289,446,337,476,354,361,838,599,762,500,808,052,368,249,716,737.25".equals(accountUSD.getFormattedBalance()));
+        assert("$359,538,626,972,463,140,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,001.25".equals(accountUSD.getFormattedBalance()));
     }
 
 
@@ -72,6 +72,16 @@ class AccountTest {
         accountUSD.deposit((double)1/3);
 
         assert("$1.00".equals(accountUSD.getFormattedBalance()));
+    }
+
+
+    @Test
+    public void testAgainstDoubleRoundingError(){
+        Account accountUSD = new Account("chequing", "US");
+        accountUSD.deposit(0.1);
+        accountUSD.deposit(0.2);
+
+        assert(accountUSD.getCurrentBalance().toString().equals("0.3"));
     }
 
     @Test
@@ -88,6 +98,7 @@ class AccountTest {
 
         assert("$0.70".equals(accountUSD.getFormattedBalance()));
     }
+
 
     @Test
     public void insufficientFundsWithdrawalTest(){
