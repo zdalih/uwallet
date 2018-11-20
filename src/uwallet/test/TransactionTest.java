@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TransactionTest {
 
     static private Account testAccount(){
-        Account testAccount = new Account("test", "US");
+        Account testAccount = new Account("test", "unique", "US");
         testAccount.deposit(100000.00);
         return testAccount;
     }
@@ -19,7 +19,7 @@ class TransactionTest {
         Account testAccount = testAccount();
         DepositTransaction depositTX = new DepositTransaction(100, testAccount, "test");
 
-        assert( depositTX.endingBalance.toString().equals("100100.0") );
+        assert( depositTX.getEndingBalance().toString().equals("100100.0") );
     }
 
     @Test
@@ -27,7 +27,7 @@ class TransactionTest {
         Account testAccount = testAccount();
         DepositTransaction depositTX = new DepositTransaction(0, testAccount, "test");
 
-        assert( depositTX.endingBalance.toString().equals("100000.0") );
+        assert( depositTX.getEndingBalance().toString().equals("100000.0") );
     }
 
     @Test
@@ -35,7 +35,7 @@ class TransactionTest {
         Account testAccount = testAccount();
         WithdrawalTransaction withTX = new WithdrawalTransaction(100000.00, testAccount, "test");
 
-        assert( withTX.endingBalance.toString().equals("0.0") );
+        assert( withTX.getEndingBalance().toString().equals("0.0") );
     }
 
 
@@ -44,7 +44,7 @@ class TransactionTest {
         Account testAccount = testAccount();
         WithdrawalTransaction withTX = new WithdrawalTransaction(100, testAccount, "test");
 
-        assert( withTX.endingBalance.toString().equals("99900.0") );
+        assert( withTX.getEndingBalance().toString().equals("99900.0") );
     }
 
     @Test
@@ -52,7 +52,7 @@ class TransactionTest {
         Account testAccount = testAccount();
         WithdrawalTransaction withTX = new WithdrawalTransaction(200000.00, testAccount, "test");
 
-        assert( withTX.endingBalance.toString().equals("-100000.0") );
+        assert( withTX.getEndingBalance().toString().equals("-100000.0") );
     }
 
     @Test
@@ -78,5 +78,13 @@ class TransactionTest {
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
 
         assert(withTX.getTXSymbol().equals("CR"));
+    }
+
+    @Test
+    void testUniqueIdentifier(){
+        Account testAccount = testAccount();
+        WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "TEST");
+        System.out.println(withTX.getUUID());
+        assert(withTX.getUUID().equals("uniqueTEST"));
     }
 }

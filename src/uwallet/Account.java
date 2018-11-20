@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 
+
 import uwallet.exceptions.InsufficientFundsException;
 
 public class Account{
@@ -16,12 +17,13 @@ public class Account{
     //constants
     //TODO: make language an option for the user to choose
     private static final String LANGUAGE  = "en";
-    private static int NUM_ACCOUNTS = 0;
 
-    private final String accountName;
-    private final int accountNumber;
     private BigDecimal balance;
-    public final NumberFormat currencyFormat;
+    private final String accountName;
+    private final String id;
+    private final String regionCode;
+    private int last_txID = 0; //the last txID that was created. 0 referring to nothing was last.
+    private final NumberFormat currencyFormat;
 
     private List<Transaction> uncomitedTransactions = new ArrayList<Transaction>();
 //    private final TransactionHistory transactionHistory; //TODO: create transaction history file
@@ -32,19 +34,49 @@ public class Account{
      *
      * @param accountName
      *              the name of the account. a String that can not be empty.
+     * @param uniqueIdentifier
+     *              a string that uniquely identifies this account - needs to be globally unique. No
+     *              two accounts should have the same uniqueIdentifier - can not be Null or empty
      * @param currencyCountry
      *              ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
      *              currency is desired
      *
      */
-    public Account(String accountName, String currencyCountry){
-        NUM_ACCOUNTS += 1;
+    public Account(String accountName, String uniqueIdentifier, String currencyCountry){
 
-        this.balance = new BigDecimal("0");
+        this.id = uniqueIdentifier;
         this.accountName = accountName;
-        this.accountNumber = NUM_ACCOUNTS;
+        this.balance = new BigDecimal("0");
+        this.regionCode = currencyCountry;
         this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
 //        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
+    }
+
+    protected Account(String accountName, String uniqueIdentifier,
+                      String currencyCountry, String balance, int last_txID){
+
+        this.id = uniqueIdentifier;
+        this.last_txID = last_txID;
+        this.accountName = accountName;
+        this.balance = new BigDecimal(balance);
+        this.regionCode = currencyCountry;
+        this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
+//        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
+    }
+
+    /**
+     * Loads an Account object from persistent database given the uniqueIdentifier. requires the SQLite JDBC driver library
+     * dependency
+     *
+     * @param uniqueIdentifier the uniqueIdentifer of the account that wants to be accessed. can not be empty or null
+     *
+     *
+     * @return Account object as defined within the DB
+     */
+    static public Account loadAccount(String uniqueIdentifier) {
+        SQL sql = new SQL();
+        return sql.getAccount(uniqueIdentifier);
+
     }
 
     /**
@@ -62,7 +94,8 @@ public class Account{
      *
      */
     public synchronized void deposit(double amount, String... description){
-        DepositTransaction depositTX = new DepositTransaction(amount, this, description);
+        this.last_txID += 1;
+        DepositTransaction depositTX = new DepositTransaction(amount, this, "TX"+String.valueOf(this.last_txID),description);
         this.balance = depositTX.endingBalance;
         uncomitedTransactions.add(depositTX);
     }
@@ -84,7 +117,8 @@ public class Account{
      *               if the the withdrawal would cause the balance in the account to be negative
      */
     public synchronized void withdraw(double amount, String... description) throws InsufficientFundsException{
-        WithdrawalTransaction withdrawalTX = new WithdrawalTransaction(amount, this, description);
+        this.last_txID += 1;
+        WithdrawalTransaction withdrawalTX = new WithdrawalTransaction(amount, this, "TX"+String.valueOf(this.last_txID), description);
         BigDecimal afterWithdrawalBalance = withdrawalTX.endingBalance;
         if (afterWithdrawalBalance.compareTo(BigDecimal.ZERO) < 0){
             throw new InsufficientFundsException(String.format("%s only has %s", this.accountName, this.getFormattedBalance()));
@@ -96,13 +130,23 @@ public class Account{
 
     /**
      * updates the persistent data to contain transactions that have not been saved yet. Must be run after complete
-     * operations on the account to ensure that they will be persistent.
+     * operations on the account to ensure that they will be persistent. Uploads the state of the account and
+     * transactions to SQLite databases. Requires the JDBC SQLite driver dependency.
+     *
+     * It will create a directory ./sqlite to store database files if it does not exist.
      */
     public void commit(){
-        for(Transaction tx : this.uncomitedTransactions){
-//            this.transactionHistory.audit(tx);
-            System.out.println(tx);
+
+        SQL sql = new SQL();
+        sql.insertAccount(this);
+
+        for(Transaction tx : this.uncomitedTransactions) {
+            sql.insertTransaction(tx);
         }
+
+        //clear the list as the transactions have now been committed to the DB
+        this.uncomitedTransactions.clear();
+
     }
 
     /**
@@ -113,10 +157,28 @@ public class Account{
     }
 
     /**
-     * @return int - the account number
+     * @return int - the account id
      */
-    public int getAccountNumber(){
-        return this.accountNumber;
+    public String getAccountID(){
+        return this.id;
+    }
+
+    /**
+     *
+     * @return String - ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country that was used.
+     */
+    public String getRegionCode(){
+        return this.regionCode;
+    }
+
+    /**
+     *
+     * @return int - a variable that keeps track of the number of transaction object was created, this variable is
+     * used to ensure uniqueness in the identifier for the transactions and does not represent the actual number of
+     * transactions stored for this account.
+     */
+    public int getLastTxId(){
+        return this.last_txID;
     }
 
     /**
@@ -138,7 +200,7 @@ public class Account{
     }
 
     /**
-     * @param double -  a double representing the amount to be formatted.
+     * @param amount double -  a double representing the amount to be formatted.
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
      */
@@ -147,7 +209,7 @@ public class Account{
     }
 
     /**
-     * @param BigDecimal -  a BigDecimal representing the amount to be formatted.
+     * @param amount BigDecimal -  a BigDecimal representing the amount to be formatted.
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
      */
@@ -157,6 +219,6 @@ public class Account{
 
     @Override
     public String toString(){
-        return this.accountName + " : " + this.getFormattedBalance();
+        return this.id + "|" + this.accountName + " : " + this.getFormattedBalance();
     }
 }

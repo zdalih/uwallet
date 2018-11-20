@@ -1,9 +1,10 @@
-package uwallet.test;
 
 import uwallet.exceptions.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
 
 import uwallet.Account;
+
+import java.lang.reflect.Constructor;
 
 class AccountTest {
 
@@ -15,25 +16,25 @@ class AccountTest {
         //list of region codes
         //https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "1", "US");
         assert("$0.00".equals(accountUSD.getFormattedBalance()));
 
-        Account accountEUR = new Account("chequing", "FR");
+        Account accountEUR = new Account("chequing", "2", "FR");
         assert("€0.00".equals(accountEUR.getFormattedBalance()));
 
         // expecting 0 decimals
-        Account accountPESO = new Account("chequing", "CL");
+        Account accountPESO = new Account("chequing", "3", "CL");
         assert("CLP0".equals(accountPESO.getFormattedBalance()));
 
         // here we expect 3 decimal points
-        Account accountDINAR = new Account("chequing", "JO");
+        Account accountDINAR = new Account("chequing", "4", "JO");
         assert("JOD0.000".equals(accountDINAR.getFormattedBalance()));
 
     }
 
     @Test
     public void recurrentBinaryDecimalsDepositTest(){
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "5", "US");
         accountUSD.deposit(0.1);
         accountUSD.deposit(0.2);
 
@@ -43,7 +44,7 @@ class AccountTest {
     @Test
     public void depositSmallValueToBigBalance(){
         //this is meant to test the accuracy not being limited by that of a double
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing" , "6", "US");
         accountUSD.deposit(1000000000000000000000.00);
         accountUSD.deposit(10.21);
 
@@ -55,7 +56,7 @@ class AccountTest {
     @Test
     public void addMaxDoubleValueTwiceAndAddOne(){
         // tests that the precision is truly arbitrary and only limited by memory on the system
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "7", "US");
         accountUSD.deposit(Double.MAX_VALUE);
         accountUSD.deposit(Double.MAX_VALUE);
         accountUSD.deposit(1.25);
@@ -66,7 +67,7 @@ class AccountTest {
 
     @Test
     public void recurrentBase10DecimalsDepositTest(){
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "8", "US");
         accountUSD.deposit((double)1/3);
         accountUSD.deposit((double)1/3);
         accountUSD.deposit((double)1/3);
@@ -77,7 +78,7 @@ class AccountTest {
 
     @Test
     public void testAgainstDoubleRoundingError(){
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "9",  "US");
         accountUSD.deposit(0.1);
         accountUSD.deposit(0.2);
 
@@ -86,7 +87,7 @@ class AccountTest {
 
     @Test
     public void simpleWithdrawalTest(){
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "10", "US");
         accountUSD.deposit(1);
 
         try{
@@ -102,7 +103,7 @@ class AccountTest {
 
     @Test
     public void insufficientFundsWithdrawalTest(){
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "11", "US");
 
         try{
             accountUSD.withdraw(0.3);
@@ -116,7 +117,7 @@ class AccountTest {
 
     @Test
     public void accountCommitTest(){
-        Account accountUSD = new Account("chequing", "US");
+        Account accountUSD = new Account("chequing", "AC001", "US");
         accountUSD.deposit(1, "some cash");
         accountUSD.deposit(2, "nahmsaying");
         try{
@@ -125,8 +126,32 @@ class AccountTest {
         accountUSD.deposit(3, "but made it back");
         accountUSD.commit();
         System.out.println(accountUSD);
+
+        Account loadedAccount = Account.loadAccount("AC001");
+        System.out.println(loadedAccount);
         assert(false);
     }
 
+    @Test
+    public void testAccountNumberIdentifier(){
+        try{
+            Class<?> AccountClass = Class.forName("uwallet.Account");
+            Constructor<?> constructor = AccountClass.getConstructor(String.class, String.class, String.class);
+            Object account1 = constructor.newInstance("account", "1", "US");
+            assert(account1.toString().charAt(0) == '1');
+            Object account2 = constructor.newInstance("account", "2", "US");
+            assert(account1.toString().charAt(0) == '1');
+            assert(account2.toString().charAt(0) == '2');
+            Object account3 = constructor.newInstance("account", "3", "US");
+            assert(account1.toString().charAt(0) == '1');
+            assert(account2.toString().charAt(0) ==  '2');
+            assert(account3.toString().charAt(0) == '3');
+        } catch (Exception e){
+            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+            System.exit(0);
+        }
+
+
+    }
 }
 

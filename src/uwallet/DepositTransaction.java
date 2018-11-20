@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class DepositTransaction extends Transaction {
 
-    public DepositTransaction(double amount,  Account account, String... description){super(amount, account, description);}
+    public DepositTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
 
     @Override
     BigDecimal applyTransaction() {

@@ -22,8 +22,9 @@ public class TransactionHistory {
     //     many concurrent threads are trying to write to the db file. if we were to change the db system
     //     we would do so by changing this class.
 
-    // TODO: Introduce a Transaction Object
+
     // TODO: Populate the transaction history
+    // TODO: Introduce a Transaction Object
     // TODO: Test the TransactionHistory Object
     // TODO: Get last N Transactions
 
