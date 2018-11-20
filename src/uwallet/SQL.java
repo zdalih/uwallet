@@ -104,9 +104,12 @@ class SQL {
 
     /**
      * @return Account - an account object as defined in the DB for the given identifier. The identifier must be that
-     * of an account that has been committed to the database already.
+     *          of an account that has been committed to the database already.
+     *
+     * @throws NoSuchAccountInDatabaseException
+     *          if no such account with the given identifier is found in the db
      */
-    Account getAccount(String identifier) {
+    Account getAccount(String identifier) throws NoSuchAccountInDatabaseException{
         connect();
         try {
             //we want to create a table for the given transactionGroupId.
@@ -115,6 +118,12 @@ class SQL {
             ResultSet rs = stmt.executeQuery(
                     "SELECT * FROM Accounts " +
                             "WHERE id = '" + identifier + "'");
+
+            try{
+                rs.getString("id");
+            } catch (SQLException e){
+                throw new NoSuchAccountInDatabaseException("No such user with identifier " + identifier + " found");
+            }
 
             String id = rs.getString("id");
             String accountName = rs.getString("accountName");

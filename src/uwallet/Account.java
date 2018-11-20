@@ -1,13 +1,17 @@
 package uwallet;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.lang.ref.WeakReference;
+import java.lang.ref.ReferenceQueue;
 
 
 import uwallet.exceptions.InsufficientFundsException;
+import uwallet.exceptions.NoSuchAccountInDatabaseException;
 
 public class Account{
     //RI:
@@ -17,6 +21,9 @@ public class Account{
     //constants
     //TODO: make language an option for the user to choose
     private static final String LANGUAGE  = "en";
+
+    private static List<WeakReference<Account>> loadedAccountObjects = new ArrayList<WeakReference<Account>>();
+    private static ReferenceQueue<Object> rq = new ReferenceQueue<Object>();
 
     private BigDecimal balance;
     private final String accountName;
@@ -49,6 +56,10 @@ public class Account{
         this.balance = new BigDecimal("0");
         this.regionCode = currencyCountry;
         this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
+
+
+        WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
+        loadedAccountObjects.add(weakr);
 //        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
     }
 
@@ -61,20 +72,39 @@ public class Account{
         this.balance = new BigDecimal(balance);
         this.regionCode = currencyCountry;
         this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
+
+        //remove null pointers
+        WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
+        loadedAccountObjects.add(weakr);
 //        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
     }
 
     /**
      * Loads an Account object from persistent database given the uniqueIdentifier. requires the SQLite JDBC driver library
-     * dependency
+     * dependency. If a reference to the account object with the identifier already exists, the object will be returned
+     * instead of creating a new one to ensure that no 2 Account object exists to represent a single account.
      *
      * @param uniqueIdentifier the uniqueIdentifer of the account that wants to be accessed. can not be empty or null
      *
-     *
      * @return Account object as defined within the DB
+     *
+     * @throws NoSuchAccountInDatabaseException
+     *          if the account with the given uniqueIdentifier does not match any account that has been committed to
+     *          the database as well as accounts in memory.
      */
-    static public Account loadAccount(String uniqueIdentifier) {
+    static public Account loadAccount(String uniqueIdentifier) throws NoSuchAccountInDatabaseException {
+        Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
+        while(itr.hasNext()) {
+            Account acc = (Account) itr.next().get();
+            if (acc == null)
+                itr.remove();
+            else if(acc.getAccountID() == uniqueIdentifier)
+                return acc;
+        }
+        //a Account object for this account is not already loaded, so load one from the DB and return it.
+
         SQL sql = new SQL();
+
         return sql.getAccount(uniqueIdentifier);
 
     }

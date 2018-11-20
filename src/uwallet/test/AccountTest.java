@@ -116,23 +116,6 @@ class AccountTest {
     }
 
     @Test
-    public void accountCommitTest(){
-        Account accountUSD = new Account("chequing", "AC001", "US");
-        accountUSD.deposit(1, "some cash");
-        accountUSD.deposit(2, "nahmsaying");
-        try{
-            accountUSD.withdraw(1, "lost it");
-        } catch (InsufficientFundsException err){}
-        accountUSD.deposit(3, "but made it back");
-        accountUSD.commit();
-        System.out.println(accountUSD);
-
-        Account loadedAccount = Account.loadAccount("AC001");
-        System.out.println(loadedAccount);
-        assert(false);
-    }
-
-    @Test
     public void testAccountNumberIdentifier(){
         try{
             Class<?> AccountClass = Class.forName("uwallet.Account");
@@ -150,8 +133,7 @@ class AccountTest {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
             System.exit(0);
         }
-
-
     }
+
 }
 
