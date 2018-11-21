@@ -13,7 +13,7 @@ import java.lang.ref.ReferenceQueue;
 import uwallet.exceptions.InsufficientFundsException;
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 
-public class Account{
+class Account{
     //RI:
     //
     //AF:
@@ -22,6 +22,8 @@ public class Account{
     //TODO: make language an option for the user to choose
     private static final String LANGUAGE  = "en";
 
+    //the following vars are  used to refer to active objects to ensure that we never have two
+    //Account objects referring to the same account active at the same time.
     private static List<WeakReference<Account>> loadedAccountObjects = new ArrayList<WeakReference<Account>>();
     private static ReferenceQueue<Object> rq = new ReferenceQueue<Object>();
 
@@ -33,7 +35,6 @@ public class Account{
     private final NumberFormat currencyFormat;
 
     private List<Transaction> uncomitedTransactions = new ArrayList<Transaction>();
-//    private final TransactionHistory transactionHistory; //TODO: create transaction history file
 
 
     /**
@@ -49,7 +50,7 @@ public class Account{
      *              currency is desired
      *
      */
-    public Account(String accountName, String uniqueIdentifier, String currencyCountry){
+    Account(String accountName, String uniqueIdentifier, String currencyCountry){
 
         this.id = uniqueIdentifier;
         this.accountName = accountName;
@@ -63,7 +64,7 @@ public class Account{
 //        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
     }
 
-    protected Account(String accountName, String uniqueIdentifier,
+    Account(String accountName, String uniqueIdentifier,
                       String currencyCountry, String balance, int last_txID){
 
         this.id = uniqueIdentifier;
@@ -73,10 +74,10 @@ public class Account{
         this.regionCode = currencyCountry;
         this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
 
-        //remove null pointers
         WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
+        //clean up null pointers and add a pointer to this object
+        this.removeNullPointersInActiveObjectList();
         loadedAccountObjects.add(weakr);
-//        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
     }
 
     /**
@@ -92,20 +93,20 @@ public class Account{
      *          if the account with the given uniqueIdentifier does not match any account that has been committed to
      *          the database as well as accounts in memory.
      */
-    static public Account loadAccount(String uniqueIdentifier) throws NoSuchAccountInDatabaseException {
+    static Account loadAccount(String uniqueIdentifier) throws NoSuchAccountInDatabaseException {
         Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
         while(itr.hasNext()) {
             Account acc = (Account) itr.next().get();
             if (acc == null)
-                itr.remove();
+                continue;
             else if(acc.getAccountID() == uniqueIdentifier)
                 return acc;
         }
         //a Account object for this account is not already loaded, so load one from the DB and return it.
 
-        SQL sql = new SQL();
+        uWalletDatabase db = new uWalletDatabase();
 
-        return sql.getAccount(uniqueIdentifier);
+        return db.getAccount(uniqueIdentifier);
 
     }
 
@@ -123,7 +124,7 @@ public class Account{
      *            are ignored. The default description is N/A. Should not be an empty string.
      *
      */
-    public synchronized void deposit(double amount, String... description){
+    synchronized void deposit(double amount, String... description){
         this.last_txID += 1;
         DepositTransaction depositTX = new DepositTransaction(amount, this, "TX"+String.valueOf(this.last_txID),description);
         this.balance = depositTX.endingBalance;
@@ -146,7 +147,7 @@ public class Account{
      * @throws InsufficientFundsException
      *               if the the withdrawal would cause the balance in the account to be negative
      */
-    public synchronized void withdraw(double amount, String... description) throws InsufficientFundsException{
+    synchronized void withdraw(double amount, String... description) throws InsufficientFundsException{
         this.last_txID += 1;
         WithdrawalTransaction withdrawalTX = new WithdrawalTransaction(amount, this, "TX"+String.valueOf(this.last_txID), description);
         BigDecimal afterWithdrawalBalance = withdrawalTX.endingBalance;
@@ -165,13 +166,13 @@ public class Account{
      *
      * It will create a directory ./sqlite to store database files if it does not exist.
      */
-    public void commit(){
+    void commit(){
 
-        SQL sql = new SQL();
-        sql.insertAccount(this);
+        uWalletDatabase db = new uWalletDatabase();
+        db.insertAccount(this);
 
         for(Transaction tx : this.uncomitedTransactions) {
-            sql.insertTransaction(tx);
+            db.insertTransaction(tx);
         }
 
         //clear the list as the transactions have now been committed to the DB
@@ -180,16 +181,34 @@ public class Account{
     }
 
     /**
+     * @return List<Transaction> - which is a list of length 0-N (limited by the total number of transactions for
+     * the account) of the last 0-N transactions that are on file for this account.
+     *
+     * This will only return transactions that have been made before calls to account.commit(), as those
+     * are the only transactions that have actually been recorded.
+     */
+    List<Transaction> getPastTransactions(int N) {
+        uWalletDatabase db = new uWalletDatabase();
+        try {
+            return db.getNLastTransactions(this.id, N);
+        } catch (NoSuchAccountInDatabaseException e) {
+            //this account has never been committed to the DB yet
+            //so return an empty list
+            return new ArrayList<Transaction>();
+        }
+    }
+
+    /**
      * @return String - the name of the account
      */
-    public String getAccountName(){
+    String getAccountName(){
         return this.accountName;
     }
 
     /**
      * @return int - the account id
      */
-    public String getAccountID(){
+    String getAccountID(){
         return this.id;
     }
 
@@ -197,7 +216,7 @@ public class Account{
      *
      * @return String - ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country that was used.
      */
-    public String getRegionCode(){
+    String getRegionCode(){
         return this.regionCode;
     }
 
@@ -207,7 +226,7 @@ public class Account{
      * used to ensure uniqueness in the identifier for the transactions and does not represent the actual number of
      * transactions stored for this account.
      */
-    public int getLastTxId(){
+    int getLastTxId(){
         return this.last_txID;
     }
 
@@ -216,7 +235,7 @@ public class Account{
      * @return a BigDecimal object representing the CURRENT balance -  it is a new object that will not update
      * with changes to the account.
      */
-    public BigDecimal getCurrentBalance(){
+    BigDecimal getCurrentBalance(){
         return new BigDecimal(this.balance.toString());
     }
 
@@ -224,7 +243,7 @@ public class Account{
      * @return String - the balance in english, as formatted as per standards for the country that was used to initialize
      * this account.
      */
-    public String getFormattedBalance(){
+    String getFormattedBalance(){
 
         return this.currencyFormat.format(this.balance);
     }
@@ -234,7 +253,7 @@ public class Account{
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
      */
-    public String applyAccountFormat(double amount){
+    String applyAccountFormat(double amount){
         return this.currencyFormat.format(amount);
     }
 
@@ -243,7 +262,7 @@ public class Account{
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
      */
-    public String applyAccountFormat(BigDecimal amount){
+    String applyAccountFormat(BigDecimal amount){
         return this.currencyFormat.format(amount);
     }
 
@@ -251,4 +270,15 @@ public class Account{
     public String toString(){
         return this.id + "|" + this.accountName + " : " + this.getFormattedBalance();
     }
+
+    private void removeNullPointersInActiveObjectList(){
+        //clean up the loadedAccountObject list to remove null pointers
+        Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
+        while(itr.hasNext()) {
+            Account acc = (Account) itr.next().get();
+            if (acc == null)
+                itr.remove();
+        }
+    }
+
 }

@@ -1,18 +1,24 @@
 package uwallet;
 
+import uwallet.exceptions.NoSuchAccountInDatabaseException;
+
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
-public class DepositTransaction extends Transaction {
+ class DepositTransaction extends Transaction {
 
-    public DepositTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
-
+     DepositTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
+     DepositTransaction(Timestamp timestamp, String uuid, String account,
+                              double amount, String endingBalance, String description) throws NoSuchAccountInDatabaseException {
+        super(timestamp, uuid, account, amount, endingBalance, description);
+    }
     @Override
-    BigDecimal applyTransaction() {
+     BigDecimal applyTransaction() {
         //Here we use Double.ToString() because BigDecimal constructor using double inherits the accuracy errors of doubles
         BigDecimal endingBalance = this.involvedAccount.getCurrentBalance().add(new BigDecimal(Double.toString(this.amount)));
         return endingBalance;
     }
 
     @Override
-    public String getTXSymbol(){return "DR";}
+     String getTXSymbol(){return "DR";}
 }

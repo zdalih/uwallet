@@ -1,9 +1,12 @@
 package uwallet;
 
+import uwallet.exceptions.NoSuchAccountInDatabaseException;
+
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.math.BigDecimal;
 
-public abstract class Transaction {
+abstract class Transaction {
 
     //RI: Each transaction must have a globally unique UUID, a timestamp created during call of it's creation, and
     //    the endingBalance must only be defined after the transaction has been completed to the involved Account.
@@ -15,13 +18,12 @@ public abstract class Transaction {
     //    result.
     //
 
-    protected final String uuid;
-    protected final String txID;
-    protected final Timestamp timestamp;
-    protected final double amount;
-    protected final Account involvedAccount;
-    protected final String description;
-    protected final BigDecimal endingBalance;
+     final String uuid;
+     final Timestamp timestamp;
+     final double amount;
+     final Account involvedAccount;
+     final String description;
+     final BigDecimal endingBalance;
 
     /**
      *
@@ -37,19 +39,29 @@ public abstract class Transaction {
      *            are ignored. The default description is N/A.
      *
      */
-    public Transaction(double amount, Account account, String txID, String... description){
+     Transaction(double amount, Account account, String txID, String... description){
         this.timestamp = new Timestamp(System.currentTimeMillis());
-        this.txID = txID;
         this.amount = amount;
         this.involvedAccount = account;
         this.endingBalance = this.applyTransaction();
-        this.uuid = this.generateUniqueIdentifier();
+        this.uuid = this.generateUniqueIdentifier(txID);
 
         if (description.length > 0){
             this.description = description[0];
             return;
         }
         this.description = "N/A";
+    }
+
+     Transaction (Timestamp timestamp, String uuid, String account,
+                           double amount, String endingBalance, String description)
+            throws NoSuchAccountInDatabaseException {
+        this.timestamp = timestamp;
+        this.uuid = uuid;
+        this.involvedAccount = Account.loadAccount(account);
+        this.amount = amount;
+        this.endingBalance = new BigDecimal(endingBalance);
+        this.description = description;
     }
 
     /**
@@ -65,21 +77,21 @@ public abstract class Transaction {
      *
      * @return a string code representing the nature of the transaction such as CR for credit, DR for debit
      */
-    abstract public String getTXSymbol();
+    abstract String getTXSymbol();
 
     /**
      *
      * @return a string for this transaction that will serve as a purely unique identifier of this transaction object
      */
-    private String generateUniqueIdentifier(){
-        return this.involvedAccount.getAccountID() + this.txID;
+    private String generateUniqueIdentifier(String txID){
+        return this.involvedAccount.getAccountID() + txID;
     }
 
     /**
      *
      * @return returns the endingBalance that results after the transaction
      */
-    public BigDecimal getEndingBalance(){
+     BigDecimal getEndingBalance(){
         return new BigDecimal(this.endingBalance.toString());
     }
 
@@ -87,7 +99,7 @@ public abstract class Transaction {
      *
      * @return the timestamp from the time this transaction object was created
      */
-    public Timestamp getTimestamp(){
+     Timestamp getTimestamp(){
         return this.timestamp;
     }
 
@@ -95,13 +107,13 @@ public abstract class Transaction {
      *
      * @return returns the unique identifier tied to this transaction
      */
-    public String getUUID(){
+     String getUUID(){
         return this.uuid;
     }
 
     @Override
-    public String toString(){
-        return this.timestamp.toString() + " | " + this.txID + " | account:" +
+     public String toString(){
+        return this.timestamp.toString() + " | " + this.uuid + " | account:" +
                 this.involvedAccount.getAccountName() + " | " + this.getTXSymbol() + " | " +
                 this.involvedAccount.applyAccountFormat(this.amount) +
                 " | Ending Balance: " + this.involvedAccount.applyAccountFormat(this.endingBalance) +

@@ -1,10 +1,16 @@
 package uwallet;
 
+import uwallet.exceptions.NoSuchAccountInDatabaseException;
+
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
-public class WithdrawalTransaction extends Transaction {
+ class WithdrawalTransaction extends Transaction {
 
-    public WithdrawalTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
+     WithdrawalTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
+     WithdrawalTransaction(Timestamp timestamp, String uuid, String account,
+                              double amount, String endingBalance, String description) throws NoSuchAccountInDatabaseException {
+        super(timestamp, uuid, account, amount, endingBalance, description);}
 
     @Override
     BigDecimal applyTransaction() {
@@ -14,5 +20,5 @@ public class WithdrawalTransaction extends Transaction {
     }
 
     @Override
-    public String getTXSymbol(){return "CR";}
+     String getTXSymbol(){return "CR";}
 }

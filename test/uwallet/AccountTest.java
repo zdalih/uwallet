@@ -1,3 +1,4 @@
+package uwallet;
 
 import uwallet.exceptions.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
@@ -113,26 +114,6 @@ class AccountTest {
         }
 
         assert(false);
-    }
-
-    @Test
-    public void testAccountNumberIdentifier(){
-        try{
-            Class<?> AccountClass = Class.forName("uwallet.Account");
-            Constructor<?> constructor = AccountClass.getConstructor(String.class, String.class, String.class);
-            Object account1 = constructor.newInstance("account", "1", "US");
-            assert(account1.toString().charAt(0) == '1');
-            Object account2 = constructor.newInstance("account", "2", "US");
-            assert(account1.toString().charAt(0) == '1');
-            assert(account2.toString().charAt(0) == '2');
-            Object account3 = constructor.newInstance("account", "3", "US");
-            assert(account1.toString().charAt(0) == '1');
-            assert(account2.toString().charAt(0) ==  '2');
-            assert(account3.toString().charAt(0) == '3');
-        } catch (Exception e){
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-            System.exit(0);
-        }
     }
 
 }

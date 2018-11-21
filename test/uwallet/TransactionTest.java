@@ -1,5 +1,6 @@
-import uwallet.*;
+package uwallet;
 
+import uwallet.*;
 
 import org.junit.jupiter.api.Test;
 
