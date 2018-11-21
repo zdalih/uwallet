@@ -1,17 +1,25 @@
 package uwallet;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
+import uwallet.exceptions.UniqueAccountIDConstraintException;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 class uWalletDatabaseTest {
 
+    @BeforeAll
+    public static void flushDb(){
+        uWalletDatabase db = new uWalletDatabase();
+        db.flush();
+    }
+
     @Test
-    public void testInsertionOfTwoAccountsAndRetrieval() {
+    public void testInsertionOfTwoAccountsAndRetrieval() throws UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "ACC016", "US");
         Account acc2 = new Account("mymoney", "ACC017", "FR");
 
@@ -35,7 +43,7 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void testUpdatingAnAccountAlreadyInDB(){
+    public void testUpdatingAnAccountAlreadyInDB() throws UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "ACC018", "US");
 
         uWalletDatabase db = new uWalletDatabase();
@@ -55,7 +63,7 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void testInsertingAccountWithHighDegreeOfAccuracyRequired(){
+    public void testInsertingAccountWithHighDegreeOfAccuracyRequired() throws UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "ACC019", "US");
         acc.deposit(Double.MAX_VALUE);
         acc.deposit(Double.MAX_VALUE);
@@ -74,7 +82,7 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void testInsertingAndFetchingATransactionWithHighDegreeOfAccuracyRequired(){
+    public void testInsertingAndFetchingATransactionWithHighDegreeOfAccuracyRequired() throws UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "ACC020", "US");
         acc.deposit(Double.MAX_VALUE);
         acc.deposit(Double.MAX_VALUE);
@@ -120,7 +128,7 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void testSimpleRetrievalOfOneTransaction() throws NoSuchAccountInDatabaseException , InterruptedException{
+    public void testSimpleRetrievalOfOneTransaction() throws NoSuchAccountInDatabaseException, InterruptedException, UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "ACC015", "FR");
         acc.deposit(100.50, "tx 1");
         TimeUnit.MILLISECONDS.sleep(10);
@@ -141,7 +149,7 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void testRetrievalOfDepositTransaction() throws NoSuchAccountInDatabaseException{
+    public void testRetrievalOfDepositTransaction() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "DEP", "FR");
         acc.deposit(10.50, "tx 1");
         DepositTransaction fakeTX = new DepositTransaction(10.50, acc, "89", "fake tx");
@@ -158,7 +166,7 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void testRetrievalOfWithdrawalTransaction() throws NoSuchAccountInDatabaseException{
+    public void testRetrievalOfWithdrawalTransaction() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney", "WID", "FR");
         WithdrawalTransaction fakeTX = new WithdrawalTransaction(10.50, acc, "32", "fake tx 2");
 

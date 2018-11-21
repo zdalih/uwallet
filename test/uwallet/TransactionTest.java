@@ -1,39 +1,38 @@
 package uwallet;
 
+import org.junit.jupiter.api.BeforeAll;
 import uwallet.*;
 
 import org.junit.jupiter.api.Test;
+import uwallet.exceptions.UniqueAccountIDConstraintException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TransactionTest {
 
-    static private Account testAccount(){
-        Account testAccount = new Account("test", "unique", "US");
-        testAccount.deposit(100000.00);
-        return testAccount;
-    }
-
 
     @Test
-    void testDepositTransaction() {
-        Account testAccount = testAccount();
+    void testDepositTransaction() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "A", "US");
+        testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(100, testAccount, "test");
 
         assert( depositTX.getEndingBalance().toString().equals("100100.0") );
     }
 
     @Test
-    void testDepositTransactionWithZero() {
-        Account testAccount = testAccount();
+    void testDepositTransactionWithZero() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "B", "US");
+        testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(0, testAccount, "test");
 
         assert( depositTX.getEndingBalance().toString().equals("100000.0") );
     }
 
     @Test
-    void testWithdrawTransactionResultZero() {
-        Account testAccount = testAccount();
+    void testWithdrawTransactionResultZero() throws UniqueAccountIDConstraintException {
+        Account testAccount =  new Account("test", "C", "US");
+        testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(100000.00, testAccount, "test");
 
         assert( withTX.getEndingBalance().toString().equals("0.0") );
@@ -41,24 +40,27 @@ class TransactionTest {
 
 
     @Test
-    void testWithdrawalTransaction() {
-        Account testAccount = testAccount();
+    void testWithdrawalTransaction() throws UniqueAccountIDConstraintException {
+        Account testAccount = new  Account("test", "D", "US");
+        testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(100, testAccount, "test");
 
         assert( withTX.getEndingBalance().toString().equals("99900.0") );
     }
 
     @Test
-    void testWithdrawalTransactionToNegative() {
-        Account testAccount = testAccount();
+    void testWithdrawalTransactionToNegative() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "E", "US");
+        testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(200000.00, testAccount, "test");
 
         assert( withTX.getEndingBalance().toString().equals("-100000.0") );
     }
 
     @Test
-    void testDepositAndWithdrawalCreationDoesNotChangeAccountBalance(){
-        Account testAccount = testAccount();
+    void testDepositAndWithdrawalCreationDoesNotChangeAccountBalance() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "F", "US");
+        testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
         DepositTransaction depositTX = new DepositTransaction(677.0, testAccount, "test");
 
@@ -66,26 +68,29 @@ class TransactionTest {
     }
 
     @Test
-    void testDepositSymbolISDR(){
-        Account testAccount = testAccount();
+    void testDepositSymbolISDR() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "G", "US");
+        testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(677.0, testAccount, "test");
 
         assert(depositTX.getTXSymbol().equals("DR"));
     }
 
     @Test
-    void testWithdrawalSymbolISCR(){
-        Account testAccount = testAccount();
+    void testWithdrawalSymbolISCR() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "H", "US");
+        testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
 
         assert(withTX.getTXSymbol().equals("CR"));
     }
 
     @Test
-    void testUniqueIdentifier(){
-        Account testAccount = testAccount();
+    void testUniqueIdentifier() throws UniqueAccountIDConstraintException {
+        Account testAccount = new Account("test", "I", "US");
+        testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "TEST");
         System.out.println(withTX.getUUID());
-        assert(withTX.getUUID().equals("uniqueTEST"));
+        assert(withTX.getUUID().equals("ITEST"));
     }
 }

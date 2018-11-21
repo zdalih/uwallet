@@ -207,6 +207,24 @@ class uWalletDatabase {
         return null;
     }
 
+    void flush(){
+        connect();
+        try{
+            //we want to create a table for the given transactionGroupId.
+            Statement stmt = conn.createStatement();
+
+            stmt.executeUpdate(
+                    "DELETE FROM Accounts");
+            stmt.executeUpdate(
+                    "DELETE FROM Transactions");
+
+            stmt.close();
+        } catch (SQLException e){
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            System.exit(0);
+        }
+    }
 
     private void connect(){
         //check if the SQLITE_DIR exists, else create it

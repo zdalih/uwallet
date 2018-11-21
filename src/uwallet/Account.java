@@ -12,6 +12,7 @@ import java.lang.ref.ReferenceQueue;
 
 import uwallet.exceptions.InsufficientFundsException;
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
+import uwallet.exceptions.UniqueAccountIDConstraintException;
 
 class Account{
     //RI:
@@ -49,23 +50,29 @@ class Account{
      *              ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
      *              currency is desired
      *
+     * @throws UniqueAccountIDConstraintException
+     *              if another Account object with the same uniqueIdentifier already exists either in DB or in memory.
      */
-    Account(String accountName, String uniqueIdentifier, String currencyCountry){
+    Account(String accountName, String uniqueIdentifier, String currencyCountry) throws UniqueAccountIDConstraintException {
+        try{
+            this.loadAccount(uniqueIdentifier);
+            throw  new UniqueAccountIDConstraintException("Unique Identifier: " + uniqueIdentifier + " is already allocated to an account!");
+        } catch (NoSuchAccountInDatabaseException e){
+            this.id = uniqueIdentifier;
+            this.accountName = accountName;
+            this.balance = new BigDecimal("0");
+            this.regionCode = currencyCountry;
+            this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
 
-        this.id = uniqueIdentifier;
-        this.accountName = accountName;
-        this.balance = new BigDecimal("0");
-        this.regionCode = currencyCountry;
-        this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
 
-
-        WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
-        loadedAccountObjects.add(weakr);
-//        this.transactionHistory = new TransactionHistory(String.valueOf(this.accountNumber));
+            WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
+            loadedAccountObjects.add(weakr);
+            return;
+        }
     }
 
     Account(String accountName, String uniqueIdentifier,
-                      String currencyCountry, String balance, int last_txID){
+                      String currencyCountry, String balance, int last_txID) {
 
         this.id = uniqueIdentifier;
         this.last_txID = last_txID;
@@ -102,8 +109,8 @@ class Account{
             else if(acc.getAccountID() == uniqueIdentifier)
                 return acc;
         }
-        //a Account object for this account is not already loaded, so load one from the DB and return it.
 
+        //a Account object for this account is not already loaded, so load one from the DB and return it.
         uWalletDatabase db = new uWalletDatabase();
 
         return db.getAccount(uniqueIdentifier);
