@@ -1,15 +1,9 @@
 package uwallet;
 
-import org.junit.jupiter.api.BeforeAll;
-import uwallet.*;
-
 import org.junit.jupiter.api.Test;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class TransactionTest {
-
 
     @Test
     void testDepositTransaction() throws UniqueAccountIDConstraintException {

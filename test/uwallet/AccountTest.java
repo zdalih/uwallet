@@ -4,10 +4,8 @@ import org.junit.jupiter.api.BeforeAll;
 import uwallet.exceptions.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
 
-import uwallet.Account;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
-import java.lang.reflect.Constructor;
 
 class AccountTest {
 

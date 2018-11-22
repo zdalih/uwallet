@@ -7,10 +7,8 @@ import uwallet.exceptions.InsufficientFundsException;
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
-import java.io.File;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 class WalletTest {
 

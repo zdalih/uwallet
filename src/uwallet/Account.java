@@ -1,9 +1,6 @@
 package uwallet;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.lang.ref.WeakReference;
@@ -14,14 +11,14 @@ import uwallet.exceptions.InsufficientFundsException;
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
-class Account{
+class Account {
     //RI:
     //
     //AF:
 
     //constants
     //TODO: make language an option for the user to choose
-    private static final String LANGUAGE  = "en";
+    private static final String LANGUAGE = "en";
 
     //the following vars are  used to refer to active objects to ensure that we never have two
     //Account objects referring to the same account active at the same time.
@@ -42,39 +39,38 @@ class Account{
     /**
      * Creates an Account object with a name defined by accountName. Balance is initialized to 0.
      *
-     * @param accountName
-     *              the name of the account. a String that can not be empty.
-     * @param uniqueIdentifier
-     *              a string that uniquely identifies this account - needs to be globally unique. No
-     *              two accounts should have the same uniqueIdentifier - can not be Null or empty
-     * @param currencyCountry
-     *              ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
-     *              currency is desired
-     *
-     * @throws UniqueAccountIDConstraintException
-     *              if another Account object with the same uniqueIdentifier already exists either in DB or in memory.
+     * @param accountName      the name of the account. a String that can not be empty.
+     * @param uniqueIdentifier a string that uniquely identifies this account - needs to be globally unique. No
+     *                         two accounts should have the same uniqueIdentifier - can not be Null or empty
+     * @param currencyCountry  ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
+     *                         currency is desired
+     * @throws UniqueAccountIDConstraintException if another Account object with the same uniqueIdentifier already exists either in DB or in memory.
      */
     Account(String accountName, String uniqueIdentifier, String parentWalletUID, String currencyCountry) throws UniqueAccountIDConstraintException {
-        try{
+        try {
             this.loadAccount(uniqueIdentifier);
-            throw  new UniqueAccountIDConstraintException("Unique Identifier: " + uniqueIdentifier + " is already allocated to an account!");
-        } catch (NoSuchAccountInDatabaseException e){
+            throw new UniqueAccountIDConstraintException("Unique Identifier: " + uniqueIdentifier + " is already allocated to an account!");
+        } catch (NoSuchAccountInDatabaseException e) {
             this.id = uniqueIdentifier;
             this.parentWalletUID = parentWalletUID;
             this.accountName = accountName;
             this.balance = new BigDecimal("0");
             this.regionCode = currencyCountry;
-            this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
+            this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale(LANGUAGE, currencyCountry));
 
-
-            WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
-            loadedAccountObjects.add(weakr);
-            return;
+            //this must always be locked when being changed as it is static
+            //and if another object iterates through the list while we change it
+            //it will raise a ConcurrentModificationException
+            synchronized (loadedAccountObjects) {
+                WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
+                this.removeNullPointersInActiveObjectList();
+                loadedAccountObjects.add(weakr);
+            }
         }
     }
 
     Account(String accountName, String uniqueIdentifier, String parentWalletUID,
-                      String currencyCountry, String balance, int last_txID) {
+            String currencyCountry, String balance, int last_txID) {
 
         this.id = uniqueIdentifier;
         this.parentWalletUID = parentWalletUID;
@@ -82,12 +78,14 @@ class Account{
         this.accountName = accountName;
         this.balance = new BigDecimal(balance);
         this.regionCode = currencyCountry;
-        this.currencyFormat = NumberFormat.getCurrencyInstance( new Locale(LANGUAGE, currencyCountry) );
+        this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale(LANGUAGE, currencyCountry));
 
-        WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
-        //clean up null pointers and add a pointer to this object
-        this.removeNullPointersInActiveObjectList();
-        loadedAccountObjects.add(weakr);
+        synchronized (loadedAccountObjects) {
+            WeakReference<Account> weakr = new WeakReference<Account>(this, rq);
+            //clean up null pointers and add a pointer to this object
+            this.removeNullPointersInActiveObjectList();
+            loadedAccountObjects.add(weakr);
+        }
     }
 
     /**
@@ -96,25 +94,28 @@ class Account{
      * instead of creating a new one to ensure that no 2 Account object exists to represent a single account.
      *
      * @param uniqueIdentifier the uniqueIdentifer of the account that wants to be accessed. can not be empty or null
-     *
      * @return Account object as defined within the DB
-     *
-     * @throws NoSuchAccountInDatabaseException
-     *          if the account with the given uniqueIdentifier does not match any account that has been committed to
-     *          the database as well as accounts in memory.
+     * @throws NoSuchAccountInDatabaseException if the account with the given uniqueIdentifier does not match any account that has been committed to
+     *                                          the database as well as accounts in memory.
      */
     static Account loadAccount(String uniqueIdentifier) throws NoSuchAccountInDatabaseException {
-        Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
-        while(itr.hasNext()) {
-            Account acc = (Account) itr.next().get();
-            if (acc == null)
-                continue;
-            else if(acc.getAccountID() == uniqueIdentifier)
-                return acc;
+
+        synchronized (loadedAccountObjects) {
+            for (Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator(); itr.hasNext(); ) {
+
+                Account acc = itr.next().get();
+
+                if (acc == null)
+                    continue;
+                else if (acc.getAccountID() == uniqueIdentifier)
+                    return acc;
+
+            }
         }
 
         //a Account object for this account is not already loaded, so load one from the DB and return it.
         return uWalletDatabase.getAccount(uniqueIdentifier);
+
 
     }
 
@@ -288,12 +289,15 @@ class Account{
 
     private void removeNullPointersInActiveObjectList(){
         //clean up the loadedAccountObject list to remove null pointers
-        Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
-        while(itr.hasNext()) {
-            Account acc = itr.next().get();
-            if (acc == null)
-                itr.remove();
+        synchronized (loadedAccountObjects){
+            Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
+            while(itr.hasNext()) {
+                Account acc = itr.next().get();
+                if (acc == null)
+                    itr.remove();
+            }
         }
+
     }
 
 }

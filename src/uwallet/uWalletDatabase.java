@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.sql.*;
 import java.io.File;
 
-
 class uWalletDatabase {
 
     //class not meant to be public

@@ -1,9 +1,6 @@
 package uwallet;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-
+import org.junit.jupiter.api.*;
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
@@ -13,8 +10,20 @@ import java.util.concurrent.TimeUnit;
 class uWalletDatabaseTest {
 
     @BeforeAll
-    public static void flushDb(){
+     static void flushDb(){
         uWalletDatabase.flush();
+    }
+
+    @Test
+    public void concurrentTest1() throws InterruptedException{
+        Thread.sleep(1000);
+        System.out.println("CADABRA! " + Thread.currentThread().getName());
+    }
+
+    @Test
+    public void concurrentTest2() throws InterruptedException{
+        Thread.sleep(1000);
+        System.out.println("CADABRA! " + Thread.currentThread().getName());
     }
 
     @Test
@@ -167,8 +176,6 @@ class uWalletDatabaseTest {
 
         assert( retrievedTX.getTXSymbol().equals("CR") );
 
-
     }
-
 
 }
