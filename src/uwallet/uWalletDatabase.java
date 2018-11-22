@@ -10,17 +10,21 @@ import java.io.File;
 
 class uWalletDatabase {
 
-    //class not meant to be public
-    //TODO document this class
-    //TODO test this class
+    //RI: dbDir is where the squlite .db file is.
+    //
+    //AF: A static class with static methods to store and fetch Account, Transaction, and Wallet
+    //objects. It is meant to try to seperate the implementation and choice of DB from the rest of the
+    //application - ideally one simply changes this class to change the db.
+
+
 
     private final static File dbDir = new File("sqlite");
     private final static String dbFilename = "uwallet.db";
     private final static String dbFile = "jdbc:sqlite:"+ dbDir + "/" + dbFilename;
     private static Connection conn = connect();
 
-
-
+    //Sqlite only allows one thread to access the db at a time, so we must ensure lock
+    //on the whole class when a thread attempts to do so through the methods.
 
     /**
      * Stores or updates the information for the given Account object in the DB.

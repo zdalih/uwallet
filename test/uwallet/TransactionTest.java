@@ -84,7 +84,6 @@ class TransactionTest {
         Account testAccount = new Account("test", "I","wallet", "US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "TEST");
-        System.out.println(withTX.getUUID());
         assert(withTX.getUUID().equals("ITEST"));
     }
 }

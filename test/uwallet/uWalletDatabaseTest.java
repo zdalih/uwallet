@@ -15,18 +15,6 @@ class uWalletDatabaseTest {
     }
 
     @Test
-    public void concurrentTest1() throws InterruptedException{
-        Thread.sleep(1000);
-        System.out.println("CADABRA! " + Thread.currentThread().getName());
-    }
-
-    @Test
-    public void concurrentTest2() throws InterruptedException{
-        Thread.sleep(1000);
-        System.out.println("CADABRA! " + Thread.currentThread().getName());
-    }
-
-    @Test
     public void testInsertionOfTwoAccountsAndRetrieval() throws UniqueAccountIDConstraintException {
         Account acc = new Account("mymoney",  "ACC016", "wallet", "US");
         Account acc2 = new Account("mymoney", "ACC017", "wallet", "FR");
@@ -138,7 +126,6 @@ class uWalletDatabaseTest {
         acc.deposit(103.50, "tx 3");
         TimeUnit.MILLISECONDS.sleep(10);
         acc.deposit(104.50, "tx 4");
-        acc.commit();
 
 
         List<Transaction> pastTransactions = uWalletDatabase.getNLastTransactions("ACC015", 2);

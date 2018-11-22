@@ -9,9 +9,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Wallet{
-    //RI:
+    //RI: No two wallet can EVER be created with the same UID unless first ensures both the
+    // persistent data stores are clear of references to the UID. A single wallet can
+    // only be used for a single geographic region. No two accounts belonging to this wallet
+    // can have identical names.
     //
-    //AF:
+    //AF: Wallet object holds multiple accounts of the same currency. It tracks these
+    // accounts in a hashMap that maps the name of an account under this wallet to it's
+    // unique identifier (which is created by the wallet) to load account objects.
+    // methods interact with the accounts in the wallet through the account name that
+    // was given to the account - of course this means no two account can have identical names.
     //
 
     private HashMap<String, String> acountNameToAccountIdMap =  new HashMap<String, String>();
@@ -19,6 +26,9 @@ public class Wallet{
     private String walletUID;
 
     /**
+     *
+     * Creates a new wallet with the given UID and adds reference to it in the persistent storage.
+     *
      * @param walletUID
      *      - globally unique string to identify this wallet. Can not be null or empty.
      * @param regionCode
@@ -67,7 +77,6 @@ public class Wallet{
         String accountUID = this.walletUID + "ACC" + String.valueOf(this.acountNameToAccountIdMap.size() + 1);
         try {
             Account acc = new Account(accountName, accountUID, this.walletUID, this.regionCode);
-            acc.commit();
             this.acountNameToAccountIdMap.put(accountName, accountUID);
         } catch ( UniqueAccountIDConstraintException e ){
             throw new UniqueAccountIDConstraintException("Wallet already has account with name '" + accountName + "'");
@@ -84,8 +93,12 @@ public class Wallet{
      *               if no such account in this wallet have the given name
      */
     public String getAccountBalanceFormatted(String accountName) throws NoSuchAccountInDatabaseException{
-        Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
-        return acc.getFormattedBalance();
+        try{
+            Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
+            return acc.getFormattedBalance();
+        }catch (NoSuchAccountInDatabaseException e){
+            throw  new NoSuchAccountInDatabaseException("No account with name '" + accountName + "' associated to this wallet.");
+        }
     }
 
     /**
@@ -98,8 +111,12 @@ public class Wallet{
      *               if no such account in this wallet have the given name
      */
     public BigDecimal getAccountBalanceBigDecimal(String accountName) throws NoSuchAccountInDatabaseException{
-        Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
-        return acc.getCurrentBalance();
+        try{
+            Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
+            return acc.getCurrentBalance();
+        }catch (NoSuchAccountInDatabaseException e){
+            throw  new NoSuchAccountInDatabaseException("No account with name '" + accountName + "' associated to this wallet.");
+        }
     }
 
     /**
@@ -116,8 +133,11 @@ public class Wallet{
      */
     public void depositToAccount(double amount, String accountName) throws NoSuchAccountInDatabaseException {
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
+
+        //lock the account
         acc.deposit(amount);
-        acc.commit();
+
+
     }
 
     /**
@@ -137,8 +157,8 @@ public class Wallet{
     public void withdrawFromAccount(double amount, String accountName)
             throws NoSuchAccountInDatabaseException, InsufficientFundsException{
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
+
         acc.withdraw(amount);
-        acc.commit();
     }
 
     /**
@@ -163,12 +183,12 @@ public class Wallet{
         Account fromAcc = Account.loadAccount(this.acountNameToAccountIdMap.get(fromAccountName));
         Account toAcc = Account.loadAccount(this.acountNameToAccountIdMap.get(toAccountName));
 
+        //if we can withdraw the money, depositing it is not an issue
+
         fromAcc.withdraw(amount);
         toAcc.deposit(amount);
 
-        //if we got this far the transfer is possible and we can commit it
-        fromAcc.commit();
-        toAcc.commit();
+
 
     }
 

@@ -12,11 +12,18 @@ import uwallet.exceptions.NoSuchAccountInDatabaseException;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
 class Account {
-    //RI:
+    //RI: There can never be more then two objects in existence with the same id. Once a regionCode
+    //is chosen to initialize an account it can not be changed. The last_txID needs to be incremented
+    //after ALL new deposit or withdrawal calls.
     //
-    //AF:
+    //AF: Represents a financial account.  When calls to deposit and withdrawal
+    //are made the whole account gets locked until it is done pushing changes to the uWalletDatabase.
+    //it has a parentUID which can be any String and will not hamper the functioning of the class.
+    //the balance is of arbitrary accuracy and size. When the constructor is called - a new Account is
+    //that must have a non-existent id is created. To get the object referring to a previously created account
+    //one must use the static loadAccount(id) method. To assure unique creation of Transaction ID the account
+    //keeps track of last_txId which get incremented after each new Transaction.
 
-    //constants
     //TODO: make language an option for the user to choose
     private static final String LANGUAGE = "en";
 
@@ -32,9 +39,6 @@ class Account {
     private final String regionCode;
     private int last_txID = 0; //the last txID that was created. 0 referring to nothing was last.
     private final NumberFormat currencyFormat;
-
-    private List<Transaction> uncomitedTransactions = new ArrayList<Transaction>();
-
 
     /**
      * Creates an Account object with a name defined by accountName. Balance is initialized to 0.
@@ -57,6 +61,7 @@ class Account {
             this.balance = new BigDecimal("0");
             this.regionCode = currencyCountry;
             this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale(LANGUAGE, currencyCountry));
+            this.commit(new ArrayList<Transaction>());
 
             //this must always be locked when being changed as it is static
             //and if another object iterates through the list while we change it
@@ -137,7 +142,9 @@ class Account {
         this.last_txID += 1;
         DepositTransaction depositTX = new DepositTransaction(amount, this, "TX"+String.valueOf(this.last_txID),description);
         this.balance = depositTX.endingBalance;
+        List<Transaction> uncomitedTransactions = new ArrayList<Transaction>();
         uncomitedTransactions.add(depositTX);
+        this.commit(uncomitedTransactions);
     }
 
 
@@ -165,7 +172,9 @@ class Account {
         }
 
         this.balance = afterWithdrawalBalance;
+        List<Transaction> uncomitedTransactions = new ArrayList<Transaction>();
         uncomitedTransactions.add(withdrawalTX);
+        this.commit(uncomitedTransactions);
     }
 
     /**
@@ -175,28 +184,28 @@ class Account {
      *
      * It will create a directory ./sqlite to store database files if it does not exist.
      */
-    void commit(){
+    private void commit(List<Transaction> uncomitedTransactions ){
 
         uWalletDatabase.insertAccount(this);
 
-        for(Transaction tx : this.uncomitedTransactions) {
+        for(Transaction tx : uncomitedTransactions) {
             uWalletDatabase.insertTransaction(tx);
         }
 
         //clear the list as the transactions have now been committed to the DB
-        this.uncomitedTransactions.clear();
-
+        uncomitedTransactions.clear();
     }
 
     /**
      * @return List<Transaction> - which is a list of length 0-N (limited by the total number of transactions for
      * the account) of the last 0-N transactions that are on file for this account. If multiple transactions have
-     * timestamp within 1ms of each other - which transaction is prioritized is not defined.
+     * timestamp within 1ms of each other - which transaction is prioritized is not defined. Only returns
+     * transactions made BEFORE method is called.
      *
      * This will only return transactions that have been made before calls to account.commit(), as those
      * are the only transactions that have actually been recorded.
      */
-    List<Transaction> getPastTransactions(int N) {
+    synchronized List<Transaction> getPastTransactions(int N) {
         try {
             return uWalletDatabase.getNLastTransactions(this.id, N);
         } catch (NoSuchAccountInDatabaseException e) {

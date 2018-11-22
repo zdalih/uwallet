@@ -18,7 +18,6 @@ public class IOAccountTest {
         Account accountUSD = new Account("chequing", "AC002","wallet", "US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
-        accountUSD.commit();
 
         Account loadedAccount1 = Account.loadAccount("AC002");
         Account loadedAccount2 = Account.loadAccount("AC002");
@@ -45,7 +44,6 @@ public class IOAccountTest {
         Account accountUSD = new Account("chequing", "AC003", "wallet","US");
         accountUSD.deposit(100.23, "yay");
         accountUSD.deposit(1000.0, "love it");
-        accountUSD.commit();
 
         accountUSD = null;
 
@@ -60,7 +58,6 @@ public class IOAccountTest {
 
         Account richGuy = new Account("savings", "AC004","wallet", "FR");
         richGuy.deposit(100000.98);
-        richGuy.commit();
         richGuy = null;
 
         Account loadedRichGuy = Account.loadAccount("AC004");
@@ -76,17 +73,12 @@ public class IOAccountTest {
         accountUSD = null;
         System.gc();
 
-        //without the commit, and having the gc remove the reference, there should be no way to get the object back
         try{
             Account loadedAccount = Account.loadAccount("AC007");
         } catch (NoSuchAccountInDatabaseException e){
-            assert(true);
+            assert(false);
             return;
         }
-
-        assert(false);
-
-
 
     }
 }

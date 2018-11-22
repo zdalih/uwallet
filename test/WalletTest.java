@@ -103,4 +103,37 @@ class WalletTest {
 
     }
 
+    @Test
+    public void testDepositToNonExistentAccount() throws NoSuchAccountInDatabaseException {
+        Wallet wallet = new Wallet("WALL10", "US");
+        try{
+            wallet.depositToAccount(100.00, "nosuchaccount");
+        }catch (NoSuchAccountInDatabaseException e){
+            assert(true);
+        }
+    }
+
+
+    @Test
+    public void testGetFormattedBalanceToNonExistentAccount() throws NoSuchAccountInDatabaseException {
+        Wallet wallet = new Wallet("WALL10", "US");
+        try{
+            wallet.getAccountBalanceFormatted("nosuchaccount");
+        }catch (NoSuchAccountInDatabaseException e){
+            System.out.println(e);
+        }
+    }
+
+    @Test
+    public void testGetBigDecBalanceToNonExistentAccount() throws NoSuchAccountInDatabaseException {
+        Wallet wallet = new Wallet("WALL10", "US");
+        try{
+            wallet.getAccountBalanceBigDecimal("nosuchaccount");
+        }catch (NoSuchAccountInDatabaseException e){
+            System.out.println(e);
+        }
+    }
+
+
+
 }
