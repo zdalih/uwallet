@@ -25,25 +25,25 @@ class AccountTest {
         //list of region codes
         //https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 
-        Account accountUSD = new Account("chequing", "1", "US");
+        Account accountUSD = new Account("chequing", "1", "wallet","US");
         assert("$0.00".equals(accountUSD.getFormattedBalance()));
 
-        Account accountEUR = new Account("chequing", "2", "FR");
+        Account accountEUR = new Account("chequing", "2", "wallet","FR");
         assert("€0.00".equals(accountEUR.getFormattedBalance()));
 
         // expecting 0 decimals
-        Account accountPESO = new Account("chequing", "3", "CL");
+        Account accountPESO = new Account("chequing", "3", "wallet","CL");
         assert("CLP0".equals(accountPESO.getFormattedBalance()));
 
         // here we expect 3 decimal points
-        Account accountDINAR = new Account("chequing", "4", "JO");
+        Account accountDINAR = new Account("chequing", "4","wallet", "JO");
         assert("JOD0.000".equals(accountDINAR.getFormattedBalance()));
 
     }
 
     @Test
     public void recurrentBinaryDecimalsDepositTest() throws UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "5", "US");
+        Account accountUSD = new Account("chequing", "5", "wallet","US");
         accountUSD.deposit(0.1);
         accountUSD.deposit(0.2);
 
@@ -53,7 +53,7 @@ class AccountTest {
     @Test
     public void depositSmallValueToBigBalance() throws UniqueAccountIDConstraintException {
         //this is meant to test the accuracy not being limited by that of a double
-        Account accountUSD = new Account("chequing" , "6", "US");
+        Account accountUSD = new Account("chequing" , "6","wallet", "US");
         accountUSD.deposit(1000000000000000000000.00);
         accountUSD.deposit(10.21);
 
@@ -65,7 +65,7 @@ class AccountTest {
     @Test
     public void addMaxDoubleValueTwiceAndAddOne() throws UniqueAccountIDConstraintException {
         // tests that the precision is truly arbitrary and only limited by memory on the system
-        Account accountUSD = new Account("chequing", "7", "US");
+        Account accountUSD = new Account("chequing", "7", "wallet","US");
         accountUSD.deposit(Double.MAX_VALUE);
         accountUSD.deposit(Double.MAX_VALUE);
         accountUSD.deposit(1.25);
@@ -76,7 +76,7 @@ class AccountTest {
 
     @Test
     public void recurrentBase10DecimalsDepositTest() throws UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "8", "US");
+        Account accountUSD = new Account("chequing", "8", "wallet","US");
         accountUSD.deposit((double)1/3);
         accountUSD.deposit((double)1/3);
         accountUSD.deposit((double)1/3);
@@ -87,7 +87,7 @@ class AccountTest {
 
     @Test
     public void testAgainstDoubleRoundingError() throws UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "9",  "US");
+        Account accountUSD = new Account("chequing", "9", "wallet", "US");
         accountUSD.deposit(0.1);
         accountUSD.deposit(0.2);
 
@@ -96,7 +96,7 @@ class AccountTest {
 
     @Test
     public void simpleWithdrawalTest() throws UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "10", "US");
+        Account accountUSD = new Account("chequing", "10","wallet", "US");
         accountUSD.deposit(1);
 
         try{
@@ -112,7 +112,7 @@ class AccountTest {
 
     @Test
     public void insufficientFundsWithdrawalTest() throws UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "11", "US");
+        Account accountUSD = new Account("chequing", "11","wallet", "US");
 
         try{
             accountUSD.withdraw(0.3);

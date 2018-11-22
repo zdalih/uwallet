@@ -13,7 +13,7 @@ class TransactionTest {
 
     @Test
     void testDepositTransaction() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "A", "US");
+        Account testAccount = new Account("test", "A", "wallet", "US");
         testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(100, testAccount, "test");
 
@@ -22,7 +22,7 @@ class TransactionTest {
 
     @Test
     void testDepositTransactionWithZero() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "B", "US");
+        Account testAccount = new Account("test", "B","wallet", "US");
         testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(0, testAccount, "test");
 
@@ -31,7 +31,7 @@ class TransactionTest {
 
     @Test
     void testWithdrawTransactionResultZero() throws UniqueAccountIDConstraintException {
-        Account testAccount =  new Account("test", "C", "US");
+        Account testAccount =  new Account("test", "C", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(100000.00, testAccount, "test");
 
@@ -41,7 +41,7 @@ class TransactionTest {
 
     @Test
     void testWithdrawalTransaction() throws UniqueAccountIDConstraintException {
-        Account testAccount = new  Account("test", "D", "US");
+        Account testAccount = new  Account("test", "D", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(100, testAccount, "test");
 
@@ -50,7 +50,7 @@ class TransactionTest {
 
     @Test
     void testWithdrawalTransactionToNegative() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "E", "US");
+        Account testAccount = new Account("test", "E", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(200000.00, testAccount, "test");
 
@@ -59,7 +59,7 @@ class TransactionTest {
 
     @Test
     void testDepositAndWithdrawalCreationDoesNotChangeAccountBalance() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "F", "US");
+        Account testAccount = new Account("test", "F", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
         DepositTransaction depositTX = new DepositTransaction(677.0, testAccount, "test");
@@ -69,7 +69,7 @@ class TransactionTest {
 
     @Test
     void testDepositSymbolISDR() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "G", "US");
+        Account testAccount = new Account("test", "G", "wallet","US");
         testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(677.0, testAccount, "test");
 
@@ -78,7 +78,7 @@ class TransactionTest {
 
     @Test
     void testWithdrawalSymbolISCR() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "H", "US");
+        Account testAccount = new Account("test", "H","wallet", "US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
 
@@ -87,7 +87,7 @@ class TransactionTest {
 
     @Test
     void testUniqueIdentifier() throws UniqueAccountIDConstraintException {
-        Account testAccount = new Account("test", "I", "US");
+        Account testAccount = new Account("test", "I","wallet", "US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "TEST");
         System.out.println(withTX.getUUID());

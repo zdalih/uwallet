@@ -14,25 +14,22 @@ class uWalletDatabaseTest {
 
     @BeforeAll
     public static void flushDb(){
-        uWalletDatabase db = new uWalletDatabase();
-        db.flush();
+        uWalletDatabase.flush();
     }
 
     @Test
     public void testInsertionOfTwoAccountsAndRetrieval() throws UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "ACC016", "US");
-        Account acc2 = new Account("mymoney", "ACC017", "FR");
+        Account acc = new Account("mymoney",  "ACC016", "wallet", "US");
+        Account acc2 = new Account("mymoney", "ACC017", "wallet", "FR");
 
 
-        uWalletDatabase db = new uWalletDatabase();
-
-        db.insertAccount(acc);
-        db.insertAccount(acc2);
+        uWalletDatabase.insertAccount(acc);
+        uWalletDatabase.insertAccount(acc2);
 
 
         try{
-            Account acc_ret = db.getAccount("ACC016");
-            Account acc2_ret = db.getAccount("ACC017");
+            Account acc_ret = uWalletDatabase.getAccount("ACC016");
+            Account acc2_ret = uWalletDatabase.getAccount("ACC017");
             assert(acc_ret.toString().equals(acc.toString()));
             assert(acc2_ret.toString().equals(acc2.toString()));
         } catch (NoSuchAccountInDatabaseException e){
@@ -44,16 +41,15 @@ class uWalletDatabaseTest {
 
     @Test
     public void testUpdatingAnAccountAlreadyInDB() throws UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "ACC018", "US");
+        Account acc = new Account("mymoney", "ACC018", "wallet", "US");
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertAccount(acc);
+        uWalletDatabase.insertAccount(acc);
 
         acc.deposit(0.56);
-        db.insertAccount(acc);
+        uWalletDatabase.insertAccount(acc);
 
         try{
-            Account acc_ret = db.getAccount("ACC018");
+            Account acc_ret = uWalletDatabase.getAccount("ACC018");
             assert(acc_ret.getFormattedBalance().equals("$0.56"));
 
         } catch (NoSuchAccountInDatabaseException e){
@@ -64,16 +60,15 @@ class uWalletDatabaseTest {
 
     @Test
     public void testInsertingAccountWithHighDegreeOfAccuracyRequired() throws UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "ACC019", "US");
+        Account acc = new Account("mymoney", "ACC019", "wallet", "US");
         acc.deposit(Double.MAX_VALUE);
         acc.deposit(Double.MAX_VALUE);
         acc.deposit(123456.2);
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertAccount(acc);
+        uWalletDatabase.insertAccount(acc);
 
         try{
-            Account acc_ret = db.getAccount("ACC019");
+            Account acc_ret = uWalletDatabase.getAccount("ACC019");
             assert(acc_ret.getFormattedBalance().equals("$359,538,626,972,463,140,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,123,456.20"));
         } catch (NoSuchAccountInDatabaseException e){
             System.out.println("Account is not in db...");
@@ -83,18 +78,17 @@ class uWalletDatabaseTest {
 
     @Test
     public void testInsertingAndFetchingATransactionWithHighDegreeOfAccuracyRequired() throws UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "ACC020", "US");
+        Account acc = new Account("mymoney", "ACC020", "wallet","US");
         acc.deposit(Double.MAX_VALUE);
         acc.deposit(Double.MAX_VALUE);
         acc.deposit(123456.2);
         Transaction tx = new WithdrawalTransaction(9323.0, acc, "90","fakeTX");
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertAccount(acc);
-        db.insertTransaction(tx);
+        uWalletDatabase.insertAccount(acc);
+        uWalletDatabase.insertTransaction(tx);
 
         try{
-            Transaction tx_ret = db.getNLastTransactions("ACC020", 1).get(0);
+            Transaction tx_ret = uWalletDatabase.getNLastTransactions("ACC020", 1).get(0);
             assert(tx_ret.involvedAccount.getFormattedBalance().equals("$359,538,626,972,463,140,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,123,456.20"));
         } catch (NoSuchAccountInDatabaseException e){
             System.out.println("Account is not in db...");
@@ -105,10 +99,9 @@ class uWalletDatabaseTest {
 
     @Test
     public void fetchAccountThatIsNotInDb(){
-        uWalletDatabase db = new uWalletDatabase();
 
         try{
-            Account acc_ret = db.getAccount("nosuchaccount");
+            Account acc_ret = uWalletDatabase.getAccount("nosuchaccount");
             assert(false);
         } catch (NoSuchAccountInDatabaseException e){
             assert(true);
@@ -117,10 +110,9 @@ class uWalletDatabaseTest {
 
     @Test
     public void fetchAccountWithEmptyIdentifier(){
-        uWalletDatabase db = new uWalletDatabase();
 
         try{
-            Account acc_ret = db.getAccount("");
+            Account acc_ret = uWalletDatabase.getAccount("");
             assert(false);
         } catch (NoSuchAccountInDatabaseException e){
             assert(true);
@@ -129,7 +121,7 @@ class uWalletDatabaseTest {
 
     @Test
     public void testSimpleRetrievalOfOneTransaction() throws NoSuchAccountInDatabaseException, InterruptedException, UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "ACC015", "FR");
+        Account acc = new Account("mymoney", "ACC015", "wallet", "FR");
         acc.deposit(100.50, "tx 1");
         TimeUnit.MILLISECONDS.sleep(10);
         acc.deposit(102.50, "tx 2");
@@ -139,9 +131,8 @@ class uWalletDatabaseTest {
         acc.deposit(104.50, "tx 4");
         acc.commit();
 
-        uWalletDatabase db = new uWalletDatabase();
 
-        List<Transaction> pastTransactions = db.getNLastTransactions("ACC015", 2);
+        List<Transaction> pastTransactions = uWalletDatabase.getNLastTransactions("ACC015", 2);
 
         assert(pastTransactions.get(0).amount == 104.50);
         assert(pastTransactions.get(1).amount == 103.50);
@@ -150,15 +141,14 @@ class uWalletDatabaseTest {
 
     @Test
     public void testRetrievalOfDepositTransaction() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "DEP", "FR");
+        Account acc = new Account("mymoney", "DEP","wallet", "FR");
         acc.deposit(10.50, "tx 1");
         DepositTransaction fakeTX = new DepositTransaction(10.50, acc, "89", "fake tx");
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertAccount(acc);
-        db.insertTransaction(fakeTX);
+        uWalletDatabase.insertAccount(acc);
+        uWalletDatabase.insertTransaction(fakeTX);
 
-        Transaction retrievedTX = db.getNLastTransactions("DEP", 1).get(0);
+        Transaction retrievedTX = uWalletDatabase.getNLastTransactions("DEP", 1).get(0);
 
         assert( retrievedTX.getTXSymbol().equals("DR") );
 
@@ -167,14 +157,13 @@ class uWalletDatabaseTest {
 
     @Test
     public void testRetrievalOfWithdrawalTransaction() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
-        Account acc = new Account("mymoney", "WID", "FR");
+        Account acc = new Account("mymoney", "WID", "wallet", "FR");
         WithdrawalTransaction fakeTX = new WithdrawalTransaction(10.50, acc, "32", "fake tx 2");
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertAccount(acc);
-        db.insertTransaction(fakeTX);
+        uWalletDatabase.insertAccount(acc);
+        uWalletDatabase.insertTransaction(fakeTX);
 
-        Transaction retrievedTX = db.getNLastTransactions("WID", 1).get(0);
+        Transaction retrievedTX = uWalletDatabase.getNLastTransactions("WID", 1).get(0);
 
         assert( retrievedTX.getTXSymbol().equals("CR") );
 

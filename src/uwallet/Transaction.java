@@ -6,7 +6,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.math.BigDecimal;
 
-abstract class Transaction {
+public abstract class Transaction {
 
     //RI: Each transaction must have a globally unique UUID, a timestamp created during call of it's creation, and
     //    the endingBalance must only be defined after the transaction has been completed to the involved Account.
@@ -91,7 +91,7 @@ abstract class Transaction {
      *
      * @return returns the endingBalance that results after the transaction
      */
-     BigDecimal getEndingBalance(){
+     public BigDecimal getEndingBalance(){
         return new BigDecimal(this.endingBalance.toString());
     }
 
@@ -99,8 +99,22 @@ abstract class Transaction {
      *
      * @return the timestamp from the time this transaction object was created
      */
-     Timestamp getTimestamp(){
+     public Timestamp getTimestamp(){
         return this.timestamp;
+    }
+
+    /**
+     * @return the amount involved in the transaction
+     */
+    public double getAmount(){
+        return this.amount;
+    }
+
+    /**
+     * @return the stored description for this transaction
+     */
+    public String getDescription(){
+        return this.description;
     }
 
     /**

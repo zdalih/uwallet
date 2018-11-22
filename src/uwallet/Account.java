@@ -31,6 +31,7 @@ class Account{
     private BigDecimal balance;
     private final String accountName;
     private final String id;
+    private final String parentWalletUID;
     private final String regionCode;
     private int last_txID = 0; //the last txID that was created. 0 referring to nothing was last.
     private final NumberFormat currencyFormat;
@@ -53,12 +54,13 @@ class Account{
      * @throws UniqueAccountIDConstraintException
      *              if another Account object with the same uniqueIdentifier already exists either in DB or in memory.
      */
-    Account(String accountName, String uniqueIdentifier, String currencyCountry) throws UniqueAccountIDConstraintException {
+    Account(String accountName, String uniqueIdentifier, String parentWalletUID, String currencyCountry) throws UniqueAccountIDConstraintException {
         try{
             this.loadAccount(uniqueIdentifier);
             throw  new UniqueAccountIDConstraintException("Unique Identifier: " + uniqueIdentifier + " is already allocated to an account!");
         } catch (NoSuchAccountInDatabaseException e){
             this.id = uniqueIdentifier;
+            this.parentWalletUID = parentWalletUID;
             this.accountName = accountName;
             this.balance = new BigDecimal("0");
             this.regionCode = currencyCountry;
@@ -71,10 +73,11 @@ class Account{
         }
     }
 
-    Account(String accountName, String uniqueIdentifier,
+    Account(String accountName, String uniqueIdentifier, String parentWalletUID,
                       String currencyCountry, String balance, int last_txID) {
 
         this.id = uniqueIdentifier;
+        this.parentWalletUID = parentWalletUID;
         this.last_txID = last_txID;
         this.accountName = accountName;
         this.balance = new BigDecimal(balance);
@@ -111,9 +114,7 @@ class Account{
         }
 
         //a Account object for this account is not already loaded, so load one from the DB and return it.
-        uWalletDatabase db = new uWalletDatabase();
-
-        return db.getAccount(uniqueIdentifier);
+        return uWalletDatabase.getAccount(uniqueIdentifier);
 
     }
 
@@ -175,11 +176,10 @@ class Account{
      */
     void commit(){
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertAccount(this);
+        uWalletDatabase.insertAccount(this);
 
         for(Transaction tx : this.uncomitedTransactions) {
-            db.insertTransaction(tx);
+            uWalletDatabase.insertTransaction(tx);
         }
 
         //clear the list as the transactions have now been committed to the DB
@@ -189,15 +189,15 @@ class Account{
 
     /**
      * @return List<Transaction> - which is a list of length 0-N (limited by the total number of transactions for
-     * the account) of the last 0-N transactions that are on file for this account.
+     * the account) of the last 0-N transactions that are on file for this account. If multiple transactions have
+     * timestamp within 1ms of each other - which transaction is prioritized is not defined.
      *
      * This will only return transactions that have been made before calls to account.commit(), as those
      * are the only transactions that have actually been recorded.
      */
     List<Transaction> getPastTransactions(int N) {
-        uWalletDatabase db = new uWalletDatabase();
         try {
-            return db.getNLastTransactions(this.id, N);
+            return uWalletDatabase.getNLastTransactions(this.id, N);
         } catch (NoSuchAccountInDatabaseException e) {
             //this account has never been committed to the DB yet
             //so return an empty list
@@ -256,6 +256,14 @@ class Account{
     }
 
     /**
+     *
+     * @return the UID of the parent wallet.
+     */
+    String getParentWalletUID(){
+        return this.parentWalletUID;
+    }
+
+    /**
      * @param amount double -  a double representing the amount to be formatted.
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
@@ -282,7 +290,7 @@ class Account{
         //clean up the loadedAccountObject list to remove null pointers
         Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator();
         while(itr.hasNext()) {
-            Account acc = (Account) itr.next().get();
+            Account acc = itr.next().get();
             if (acc == null)
                 itr.remove();
         }

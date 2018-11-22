@@ -13,13 +13,12 @@ public class IOAccountTest {
 
     @BeforeAll
      public static void flushDb(){
-        uWalletDatabase db = new uWalletDatabase();
-        db.flush();
+        uWalletDatabase.flush();
     }
 
     @Test
     public void testLoadingSameAccountMultipleTimesYieldSameReference() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "AC002", "US");
+        Account accountUSD = new Account("chequing", "AC002","wallet", "US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
         accountUSD.commit();
@@ -33,7 +32,7 @@ public class IOAccountTest {
 
     @Test
     public void testLoadingSameAccountMultipleTimesYieldSameReferenceWithoutComit() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "AC006", "US");
+        Account accountUSD = new Account("chequing", "AC006", "wallet","US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
 
@@ -46,7 +45,7 @@ public class IOAccountTest {
 
     @Test
     public void testLoadingAcountWhoIsNotReferencedAnymore() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "AC003", "US");
+        Account accountUSD = new Account("chequing", "AC003", "wallet","US");
         accountUSD.deposit(100.23, "yay");
         accountUSD.deposit(1000.0, "love it");
         accountUSD.commit();
@@ -62,7 +61,7 @@ public class IOAccountTest {
 
         assert( loadedAccount == loadedAccount2 );
 
-        Account richGuy = new Account("savings", "AC004", "FR");
+        Account richGuy = new Account("savings", "AC004","wallet", "FR");
         richGuy.deposit(100000.98);
         richGuy.commit();
         richGuy = null;
@@ -73,7 +72,7 @@ public class IOAccountTest {
 
     @Test
     public void testLoadingAcountWhoIsNotReferencedAnymoreWithNoComits() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
-        Account accountUSD = new Account("chequing", "AC007", "US");
+        Account accountUSD = new Account("chequing", "AC007", "wallet","US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
 

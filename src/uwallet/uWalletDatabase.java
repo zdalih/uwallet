@@ -2,6 +2,7 @@ package uwallet;
 
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.sql.*;
@@ -14,39 +15,20 @@ class uWalletDatabase {
     //TODO document this class
     //TODO test this class
 
-    private Connection conn = null;
     private final static File dbDir = new File("sqlite");
     private final static String dbFilename = "uwallet.db";
     private final static String dbFile = "jdbc:sqlite:"+ dbDir + "/" + dbFilename;
+    private static Connection conn = connect();
 
 
-    /**
-     * uWalletDatabase class to generate the DB and write/read it. It generate a uwallet.db file in ./sqlite folder
-     * if the folder does not exist, it generates it. Requries the JDBC Sqlite Driver dependency.
-     */
-    uWalletDatabase() {
 
-        //check if the SQLITE_DIR exists, else create it
-        if (!dbDir.exists()) {
-            try {
-                dbDir.mkdir();
-            } catch (SecurityException e) {
-                System.err.println(e.getClass().getName() + ": " + e.getMessage());
-                System.exit(0);
-            }
-        }
-
-        createTablesIfNotThere();
-
-    }
 
     /**
      * Stores or updates the information for the given Account object in the DB.
      *
      * @param account account object whose data we wish to store in the DB
      */
-    void insertAccount(Account account){
-        connect();
+    static synchronized void insertAccount(Account account){
         try{
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -55,14 +37,16 @@ class uWalletDatabase {
             String accountName = account.getAccountName();
             String last_txID = String.valueOf(account.getLastTxId());
             String regionCode = account.getRegionCode();
+            String parentWalletId = account.getParentWalletUID();
             //for some reason if its purely numerical SQL gets angry and makes very big numbers infinity
             //and also reformats them.
             String numericalBalance = ">" + account.getCurrentBalance().toString();
             String formattedBalance = account.getFormattedBalance();
 
             stmt.executeUpdate(
-                    "INSERT OR REPLACE INTO Accounts (id, accountName, last_txID, regionCode, numericalBalance, formattedBalance) values" +
-                            "('" + id + "', '" + accountName + "', " + last_txID + ", '" + regionCode + "', '" + numericalBalance + "', '" + formattedBalance +"')");
+                    "INSERT OR REPLACE INTO Accounts (id, accountName, last_txID, regionCode, numericalBalance, formattedBalance, walletId) values" +
+                            "('" + id + "', '" + accountName + "', " + last_txID + ", '" + regionCode + "', '" +
+                            numericalBalance + "', '" + formattedBalance + "', '" + parentWalletId + "')");
 
 
             stmt.close();
@@ -80,8 +64,7 @@ class uWalletDatabase {
      * @throws NoSuchAccountInDatabaseException
      *          if no such account with the given identifier is found in the db
      */
-    Account getAccount(String identifier) throws NoSuchAccountInDatabaseException{
-        connect();
+    static synchronized Account getAccount(String identifier) throws NoSuchAccountInDatabaseException{
         try {
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -93,16 +76,17 @@ class uWalletDatabase {
             try{
                 rs.getString("id");
             } catch (SQLException e){
-                throw new NoSuchAccountInDatabaseException("No such user with identifier " + identifier + " found");
+                throw new NoSuchAccountInDatabaseException("No account with identifier " + identifier + " found");
             }
 
             String id = rs.getString("id");
             String accountName = rs.getString("accountName");
             int last_txID = rs.getInt("last_txID");
             String regionCode = rs.getString("regionCode");
+            String parentWalletUID = rs.getString("walletId");
             String numericalBalance = rs.getString("numericalBalance").substring(1); //removes the '>' char
             stmt.close();
-            return new Account(accountName, id, regionCode, numericalBalance, last_txID);
+            return new Account(accountName, id, parentWalletUID, regionCode, numericalBalance, last_txID);
         } catch (SQLException e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
             e.printStackTrace();
@@ -115,8 +99,7 @@ class uWalletDatabase {
      *
      * @param transaction the Transaction object that we wish to store in the DB
      */
-    void insertTransaction(Transaction transaction){
-        connect();
+    static synchronized void insertTransaction(Transaction transaction){
         try{
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -152,8 +135,7 @@ class uWalletDatabase {
      * the account) of the last 0-N transactions that are on file for this account.
      *
      */
-    List<Transaction> getNLastTransactions(String accountIdentifier, int N) throws  NoSuchAccountInDatabaseException {
-        connect();
+    static synchronized List<Transaction> getNLastTransactions(String accountIdentifier, int N) throws  NoSuchAccountInDatabaseException {
         try {
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -207,8 +189,66 @@ class uWalletDatabase {
         return null;
     }
 
-    void flush(){
-        connect();
+    /**
+     * inserts a new wallet row in the db or updates an existing one
+     * @param wallet the Wallet object to be inserted into the db
+     */
+    static synchronized void insertWallet(Wallet wallet){
+        try{
+            //we want to create a table for the given transactionGroupId.
+            Statement stmt = conn.createStatement();
+
+            String walletId = wallet.getUID();
+            String regionCode = wallet.getRegionCode();
+
+            stmt.executeUpdate(
+                    "INSERT OR REPLACE INTO Wallets (id, regionCode) values" +
+                            "('" + walletId + "', '" + regionCode + "')");
+
+            stmt.close();
+        } catch (SQLException e){
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+    }
+
+    static synchronized Wallet getWallet(String walletUID){
+        try {
+            //we want to create a table for the given transactionGroupId.
+            Statement stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery(
+                    "SELECT * FROM Accounts " +
+                            "WHERE walletId = '" + walletUID + "'");
+
+            HashMap<String, String> walletAccounts = new HashMap<String, String>();
+
+            while(rs.next())
+                walletAccounts.put(rs.getString("accountName"),rs.getString("id") );
+
+
+            ResultSet rs2 = stmt.executeQuery(
+                    "SELECT * FROM Wallets " +
+                            "WHERE id = '" + walletUID + "'");
+
+            String regionCode = rs2.getString("regionCode");
+
+            stmt.close();
+            return  new Wallet(walletUID, regionCode, walletAccounts);
+
+        } catch (SQLException e) {
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            System.exit(0);
+        }
+
+        return null;
+    }
+
+
+    static synchronized void flush(){
         try{
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -226,11 +266,12 @@ class uWalletDatabase {
         }
     }
 
-    private void connect(){
+    static private Connection connect(){
+
         //check if the SQLITE_DIR exists, else create it
-        if (!this.dbDir.exists()) {
+        if (!dbDir.exists()) {
             try {
-                this.dbDir.mkdir();
+                dbDir.mkdir();
             } catch (SecurityException e) {
                 System.err.println(e.getClass().getName() + ": " + e.getMessage());
                 e.printStackTrace();
@@ -238,22 +279,22 @@ class uWalletDatabase {
             }
         }
 
-        if(conn != null){
-            return;
-        }
         try{
-            conn = DriverManager.getConnection(this.dbFile);
+            Connection conn = DriverManager.getConnection(dbFile);
+            createTablesIfNotThere(conn);
+            return conn;
         }catch(SQLException e){
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
+
+        return  null;
     }
 
     /**
      * Generate the tables if the sqlite db is empty. Nothing happens if the tables already exists.
      */
-    private void createTablesIfNotThere(){
-        connect();
+    static private void createTablesIfNotThere(Connection conn){
         try{
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -266,7 +307,9 @@ class uWalletDatabase {
                             " last_txID                 INT                    NOT NULL, " +
                             " regionCode                STRING                 NOT NULL, " +
                             " numericalBalance          STRING                 NOT NULL, " +
-                            " formattedBalance          STRING                 NOT NULL)");
+                            " formattedBalance          STRING                 NOT NULL, " +
+                            " walletId                  STRING                 NOT NULL, " +
+                            " FOREIGN KEY (walletId) REFERENCES Wallets(id))");
 
             stmt.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS Transactions (" +
@@ -280,6 +323,14 @@ class uWalletDatabase {
                             " endingBalanceFormatted    STRING                 NOT NULL, " +
                             " endingBalanceNumeric      STRING                 NOT NULL, " +
                             " FOREIGN KEY (account) REFERENCES Accounts(id))");
+
+            stmt.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS Wallets (" +
+                            " id                        STRING PRIMARY KEY     NOT NULL, " +
+                            " regionCode                STRING                 NOT NULL)");
+
+
+
             stmt.close();
         } catch (SQLException e){
             System.err.println(e.getClass().getName() + ": " + e.getMessage());

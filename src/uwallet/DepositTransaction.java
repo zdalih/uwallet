@@ -5,7 +5,7 @@ import uwallet.exceptions.NoSuchAccountInDatabaseException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
- class DepositTransaction extends Transaction {
+  class DepositTransaction extends Transaction {
 
      DepositTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
      DepositTransaction(Timestamp timestamp, String uuid, String account,
