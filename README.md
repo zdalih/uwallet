@@ -20,7 +20,7 @@ Creation of a wallet will create a record in the persistent data. This allows on
 Wallet wallet = Wallet.loadWallet("ID001")
 ```
 
-### Wallet: Creating Accounts
+#### Wallet: Creating Accounts
 Now we may start adding new accounts to this wallet. Accounts are identified again by a name -  a wallet can not have two accounts with the same name. 
 
 ```java
@@ -29,17 +29,28 @@ wallet.createNewAccount("savings");
 ```
 
 We can now call on to one of the following mechanisms onto accounts:
-* ``` wallet.depositTo(1000.00, "chequing") ```
-* ``` wallet.withdrawFrom(500.0, "chequing") ``` - will not allow the account's balance to drop below 0.
-* ``` wallet.transfer(500.0, "chequing", "savings") ```  - will not allow the 'from' account's balance to drop below 0.
+* ``` wallet.depositTo(1000.00, "chequing"); ```
+* ``` wallet.withdrawFrom(500.0, "chequing"); ``` - will not allow the account's balance to drop below 0.
+* ``` wallet.transfer(500.0, "chequing", "savings"); ```  - will not allow the 'from' account's balance to drop below 0.
 
 For each of these methods, one may add an optional description by adding a description string at the end of the method.
 
 
 ```java
-wallet.depositTo(600.0, "chequing", "a description")
+wallet.depositTo(600.0, "chequing", "a description");
 ```
-### Wallet: Getting Last N Transactions
+
+#### Wallet: Getting the Balance
+
+One can get the balance as formatted by regional customs, or simple as a BigDecimal:
+
+```java
+wallet.depositTo(600.0, "chequing", "a description");
+wallet.getAccountBalanceFormatted("chequing"); // returns "$600.00"
+wallet.getAccountBalanceBigDecimal("chequing"); //returns new BigDecimal("600.0")
+```
+
+#### Wallet: Getting Last N Transactions
 
 One can fetch the last N transactions for a given account by call to the followinig method which in this case will return a ```List<Transaction>``` of the past 10 transactions in the account 'chequing'.
 
@@ -48,3 +59,7 @@ wallet.getLastNTransactions("chequing", 10);
 ```
 
 The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Transaction.html) is an immutable object that contains a globally unique identifier, the amount of the transaction, the nature of the transaction, and a description of the transaction if one exists.
+
+## Concurrent Usage Note
+
+This library is safe for concurrent user - however if multiple threads are changing the contents of a wallet with a given id - one should be aware that the balance as read by a thread might change as other threads make deposits, withdrawals, or transfers. This is similar to a shared account for a married couple! One may think they have $100.00 in the bank but did not realize that their significant other spent $30.00 and went to the bank to withdraw $80.00 to find out that they had insufficient funds.
