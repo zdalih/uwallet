@@ -63,9 +63,9 @@ The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.c
 #### Wallet: Exceptions
 
 Exceptions will be thrown when one tries to:
-* Do an operation on an account that does not exist (```NoSuchAccountInDatabaseException```)
+* Do an operation on an account or wallet that does not exist (```NoSuchObjectInDatabaseException```)
 * Create an account with an already existing name for a wallet (```UniqueAccountIDConstraintException```)
-* Withdraw money from an account with insufficient funds (```InsufficientFundsException```)
+* Withdraw money from an account with insufficient funds (```UniqueIDConstraintException```)
 
 ## Persistence
 
