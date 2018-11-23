@@ -1,7 +1,7 @@
 # uwallet
 
 ## Docs
-[The javadocs for the uwallet package](http://htmlpreview.github.io/?https://github.com/zdalih/uwallet/blob/master/javadoc/uwallet/Wallet.html)
+[The javadocs for the uwallet package](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/package-tree.html)
 
 ## Usage
 
