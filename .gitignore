@@ -2,6 +2,9 @@
 *.class
 target/*
 
+# sqlite file
+sqlite/*
+
 # Log file
 *.log
 
