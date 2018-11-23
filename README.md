@@ -60,6 +60,13 @@ List<Transaction> pastTx = wallet.getLastNTransactions("chequing", 10);
 
 The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Transaction.html) is an immutable object that contains a globally unique identifier, a timestamp refering to the time the transaction took place (~1ms uncertainty), the amount of the transaction, the nature of the transaction, and a description of the transaction if one exists.
 
+#### Wallet: Exceptions
+
+Exceptions will be thrown when one tries to:
+* Do an operation on an account that does not exist (NoSuchAccountInDatabaseException)
+* Create an account with an already existing name for a wallet (UniqueAccountIDConstraintException)
+* Withdraw money from an account with insufficient funds (InsufficientFundsException)
+
 ## Persistence
 
 All records are stored in persistent storage. So when the system restarts one can load previously created wallest and have all functionalities persist. Refer to ```Wallet.deleteAllRecord()``` in the javadoc to learn how to erase all data.
