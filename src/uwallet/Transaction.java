@@ -7,17 +7,16 @@ import java.sql.Timestamp;
 import java.math.BigDecimal;
 
 /**
- * RI: Each transaction must have a globally unique UUID, a timestamp created during call of it's creation, and
- *     the endingBalance must only be defined after the transaction has been completed to the involved Account.
- *     So after call to applyTransaction() which returns the endingBalance, it must set the endingBalance
- *
- * AF: This class represents an abstraction for a transaction. A transaction only refers to the substraction or
+ *     This class represents an abstraction for a transaction. A transaction only refers to the substraction or
  *      addition of value to an account - a transfer is made up of two transactions. It has the logic to calculate
  *      the impact of a transaction on an account but does not modify the account, it simply returns the BigDecimal
  *      result.
+ *
+ * RI: Each transaction must have a globally unique UUID, a timestamp created during call of it's creation, and
+ *     the endingBalance must only be defined after the transaction has been completed to the involved Account.
+ *     So after call to applyTransaction() which returns the endingBalance, it must set the endingBalance
  */
 public abstract class Transaction {
-
 
      final String uuid;
      final Timestamp timestamp;
@@ -27,6 +26,8 @@ public abstract class Transaction {
      final BigDecimal endingBalance;
 
     /**
+     *
+     * The constructor for the Transaction Object.
      *
      * @param amount double - the value magnitude of the transaction. must be positive.
      *
@@ -75,12 +76,14 @@ public abstract class Transaction {
     abstract BigDecimal applyTransaction();
 
     /**
+     * Returns a symbol representing the nature of the transaction.
      *
      * @return a string code representing the nature of the transaction such as CR for credit, DR for debit
      */
     abstract String getTXSymbol();
 
     /**
+     * Generates the global UUID for this transaction.
      *
      * @return a string for this transaction that will serve as a purely unique identifier of this transaction object
      */
@@ -89,6 +92,7 @@ public abstract class Transaction {
     }
 
     /**
+     * Returns the closing balance for the account after this transaction.
      *
      * @return returns the endingBalance that results after the transaction
      */
@@ -97,6 +101,7 @@ public abstract class Transaction {
     }
 
     /**
+     *  Returns the timestamp recorded during creation of the transaction.
      *
      * @return the timestamp from the time this transaction object was created
      */
@@ -105,6 +110,8 @@ public abstract class Transaction {
     }
 
     /**
+     * Return the value of the transaction.
+     *
      * @return the amount involved in the transaction
      */
     public double getAmount(){
@@ -112,17 +119,21 @@ public abstract class Transaction {
     }
 
     /**
-     * @return the stored description for this transaction
+     * Returns the description used while created the transaction. If none was used
+     * it will return "N/A"
+     *
+     * @return the stored description for this transaction.
      */
     public String getDescription(){
         return this.description;
     }
 
     /**
+     *  Returns the unique identifier for this transaction.
      *
      * @return returns the unique identifier tied to this transaction
      */
-     String getUUID(){
+     public String getUUID(){
         return this.uuid;
     }
 

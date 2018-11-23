@@ -9,16 +9,16 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * RI: No two wallet can EVER be created with the same UID unless first ensures both the
- *     persistent data stores are clear of references to the UID. A single wallet can
- *     only be used for a single geographic region. No two accounts belonging to this wallet
- *     can have identical names.
- *
- * AF: Wallet object holds multiple accounts of the same currency. It tracks these
+ *    Wallet object holds multiple accounts of the same currency. It tracks these
  *    accounts in a hashMap that maps the name of an account under this wallet to it's
  *    unique identifier (which is created by the wallet) to load account objects.
  *    methods interact with the accounts in the wallet through the account name that
  *    was given to the account - of course this means no two account can have identical names.
+ *
+ * RI: No two wallet can EVER be created with the same UID unless first ensures both the
+ *     persistent data stores are clear of references to the UID. A single wallet can
+ *     only be used for a single geographic region. No two accounts belonging to this wallet
+ *     can have identical names.
  */
 public class Wallet{
 
@@ -52,6 +52,16 @@ public class Wallet{
         }
     }
 
+    /**
+     * Loads the wallet object for a wallet stored in the records.
+     *
+     * @param walletUID
+     *          globally unique string to identify this wallet. Can not be null or empty.
+     *
+     * @return the wallet object for this walletUID.
+     * @throws NoSuchObjectInDatabaseException
+     *          if no wallet with the given walletUID exists in the records.
+     */
     static public Wallet loadWallet(String walletUID) throws NoSuchObjectInDatabaseException {
         uWalletDatabase db = new uWalletDatabase();
         Wallet wallet = db.getWallet(walletUID);
@@ -59,11 +69,14 @@ public class Wallet{
     }
 
     /**
+     *
+     * Constructor for the Wallet.
+     *
      * @param walletUID
-     *      - globally unique string to identify this wallet. Can not be null or empty.
+     *          globally unique string to identify this wallet. Can not be null or empty.
      * @param regionCode
-     *         ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
-     *         currency is desired
+     *          ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
+     *          currency is desired
      */
     protected Wallet(String walletUID, String regionCode, HashMap acountNameToAccountIdMap){
         this.regionCode = regionCode;
@@ -76,11 +89,11 @@ public class Wallet{
     /**
      * Adds a new account to this wallet.
      *
-     * @param accountName -  String
-     *                    representing the name to be given to this account. Empty or Null strings are not allowed
+     * @param accountName
+     *          representing the name to be given to this account. Empty or Null strings are not allowed
      *
      * @throws UniqueIDConstraintException
-     *                    if this wallet already has an account with the desired name.
+     *          if this wallet already has an account with the desired name.
      */
     public void createNewAccount(String accountName) throws UniqueIDConstraintException {
         String accountUID = this.walletUID + "ACC" + String.valueOf(this.acountNameToAccountIdMap.size() + 1);
@@ -93,13 +106,14 @@ public class Wallet{
     }
 
     /**
-     * returns the formatted account balance for account with the given name.
+     * Returns the formatted account balance for account with the given name. The format is according to the given
+     * region code's customs.
      *
-     * @param accountName - String
-     *               the name of the account whose balance we want
+     * @param accountName
+     *        the name of the account whose balance we want. Should not be Null or Empty.
      *
      * @throws NoSuchObjectInDatabaseException
-     *               if no such account in this wallet have the given name
+     *        if no such account in this wallet have the given name
      *
      * @return the formatted account balance using the region code for this wallet.
      */
@@ -113,13 +127,13 @@ public class Wallet{
     }
 
     /**
-     * returns the formatted account balance for account with the given name.
+     * Returns the account balance for the account with the given name as a BigDecimal.
      *
-     * @param accountName - String
-     *               the name of the account whose balance we want
+     * @param accountName
+     *        the name of the account whose balance we want. Should not be null or empty.
      *
      * @throws NoSuchObjectInDatabaseException
-     *               if no such account in this wallet have the given name
+     *         if no such account in this wallet have the given name
      *
      * @return the account balance as a BigDecimal.
      */
@@ -133,47 +147,43 @@ public class Wallet{
     }
 
     /**
-     * deposits an amount of money to the account with the given name.
+     * Deposits an amount of money to the account with the given name.
      *
-     * @param amount - double
-     *               the amount to be deposited to the account
+     * @param amount
+     *        the amount to be deposited to the account. Should not be null or empty.
      *
-     * @param accountName - String
-     *               the name of the account to deposit money to
+     * @param accountName
+     *        the name of the account to deposit money to
      *
-     * @param description String (optional).
-     *            description[0] is a String of at most 50char that is not null. All other items in description
-     *            are ignored. The default description is N/A. Should not be an empty string.
+     * @param description (optional)
+     *         description[0] is a String of at most 50char that is not null. All other items in description
+     *         are ignored. The default description is N/A. Should not be an empty string.
      *
      * @throws NoSuchObjectInDatabaseException
-     *               if the accountName does not represent an account that is held by this wallet.
+     *          if the accountName does not represent an account that is held by this wallet.
      */
     public void depositToAccount(double amount, String accountName, String... description) throws NoSuchObjectInDatabaseException {
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
-
-        //lock the account
         acc.deposit(amount, description);
-
-
     }
 
     /**
-     * withdraws an amount of money from the account with the given name.
+     * Withdraws an amount of money from the account with the given name.
      *
-     * @param amount - double
-     *               the amount to be withdrawn from the account
+     * @param amount
+     *        the amount to be withdrawn from the account. Should not be null or empty.
      *
-     * @param accountName - String
-     *               the name of the account to deposit money to
+     * @param accountName
+     *        the name of the account to deposit money to
      *
-     * @param description String (optional).
-     *            description[0] is a String of at most 50char that is not null. All other items in description
-     *            are ignored. The default description is N/A. Should not be an empty string.
+     * @param description (optional)
+     *        description[0] is a String of at most 50char that is not null. All other items in description
+     *        are ignored. The default description is N/A. Should not be an empty string.
      *
      * @throws NoSuchObjectInDatabaseException
-     *               if the accountName does not represent an account that is held by this wallet.
+     *         if the accountName does not represent an account that is held by this wallet.
      * @throws InsufficientFundsException
-     *               if the account does not have sufficient funds for the withdrawal.
+     *         if the account does not have sufficient funds for the withdrawal.
      */
     public void withdrawFromAccount(double amount, String accountName, String... description)
             throws NoSuchObjectInDatabaseException, InsufficientFundsException{
@@ -185,23 +195,23 @@ public class Wallet{
     /**
      * transfers the given amount from one account to another
      *
-     * @param amount - double
-     *               the amount to be transferred between the two accounts
+     * @param amount
+     *        the amount to be transferred between the two accounts. Should not be null or empty.
      *
-     * @param fromAccountName - String
-     *               the name of the account to withdraw money from
+     * @param fromAccountName
+     *        the name of the account to withdraw money from
      *
-     * @param toAccountName - String
-     *                the name of the account to deposit the money to
+     * @param toAccountName
+     *         the name of the account to deposit the money to
      *
-     * @param description String (optional).
-     *            description[0] is a String of at most 50char that is not null. All other items in description
-     *            are ignored. The default description is N/A. Should not be an empty string.
+     * @param description (optional).
+     *        description[0] is a String of at most 50char that is not null. All other items in description
+     *        are ignored. The default description is N/A. Should not be an empty string.
      *
      * @throws NoSuchObjectInDatabaseException
-     *               if one of the two account name do not refer to a valid account for this wallet
+     *         if one of the two account name do not refer to a valid account for this wallet
      * @throws InsufficientFundsException
-     *               if the fromAccount does not have sufficient funds for the withdrawal.
+     *         if the fromAccount does not have sufficient funds for the withdrawal.
      */
     public void transfer(double amount, String fromAccountName, String toAccountName,  String... description)
             throws NoSuchObjectInDatabaseException, InsufficientFundsException{
@@ -218,17 +228,20 @@ public class Wallet{
     }
 
     /**
+     *
+     * Returns the past N transactions on record for the account with the given name.
+     *
      * @param accountName - String
-     *                    the account whose transaction history we want to access
+     *        the account whose transaction history we want to access. Should not be null or empty.
      *
      * @param N - the number of records to return.
      *
      * @return a list of length 0-N (limited by the total number of transactions for
-     *   the account) of the last 0-N transactions that are on file for this account. The list is made
-     *   of Transaction objects
+     *        the account) of the last 0-N transactions that are on file for this account. The list is made
+     *        of Transaction objects
      *
      * @throws NoSuchObjectInDatabaseException
-     *               if one of the two account name do not refer to a valid account for this wallet
+     *         if one of the two account name do not refer to a valid account for this wallet
      */
     public List<Transaction> getLastNTransactions(String accountName, int N) throws NoSuchObjectInDatabaseException {
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
@@ -237,12 +250,13 @@ public class Wallet{
 
 
     /**
+     *  Returns a protected Account object - meant for locking it.
      *
      * @param accountName - String
-     *                    the account whose transaction history we want to access
+     *        the account whose transaction history we want to access. Should not be null or empty.
      * @return the Account object for the given account name.
      * @throws NoSuchObjectInDatabaseException
-     *               if one of the two account name do not refer to a valid account for this wallet
+     *         if one of the two account name do not refer to a valid account for this wallet
      */
     public Account getAccount(String accountName) throws NoSuchObjectInDatabaseException {
         return Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
@@ -250,9 +264,9 @@ public class Wallet{
 
 
     /**
-     * erases all data, for all wallets. WARNING THIS IS IRREVERSIBLE
+     * Erases all data, for all wallets. WARNING THIS IS IRREVERSIBLE
      *
-     * @param password - String
+     * @param password
      *      must be 'delete' for method to work, just to make it a bit
      *      harder for this method to be called accidentally.
      */
@@ -263,6 +277,7 @@ public class Wallet{
     }
 
     /**
+     * Get the wallet unique identifier.
      *
      * @return the UID for this wallet
      */
@@ -271,6 +286,7 @@ public class Wallet{
     }
 
     /**
+     *  Get the code for this wallet's currency region.
      *
      * @return ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
      *      currency is used in this wallet.
