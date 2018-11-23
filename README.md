@@ -5,7 +5,7 @@
 
 ## Usage
 
-The main user interface is the ```uwallet.Wallet``` class. a ```Wallet``` object can be constructed given what must be a unique id and a region code. A wallet is a collection of 'accounts' which are entities that hold balances and can be deposited to / withdrawn from.
+The main user interface is the ```uwallet.Wallet``` class. a [Wallet](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Wallet.html) object can be constructed given what must be a unique id and a region code. A wallet is a collection of 'accounts' which are entities that hold balances and can be deposited to / withdrawn from.
 
 The unique id is used to tell one wallet apart from another - and to be able to load wallets from record. When creating wallets ensure that you use a unique id that is suitable for your case. For example a user id if the user is to only have a single wallet.
 
@@ -29,10 +29,16 @@ wallet.createNewAccount("savings");
 ```
 
 We can now call on to one of the following mechanisms onto accounts:
-* wallet.depositTo("chequing")
-* wallet.withdrawFrom("chequing") - will not allow the account's balance to drop below 0.
-* wallet.transfer("chequing", "savings") - will not allow the 'from' account's balance to drop below 0.
+* wallet.depositTo(1000.00, "chequing")
+* wallet.withdrawFrom(500.0, "chequing") - will not allow the account's balance to drop below 0.
+* wallet.transfer(500.0, "chequing", "savings") - will not allow the 'from' account's balance to drop below 0.
 
+For each of these methods, one may add an optional description by adding a description string at the end of the method.
+
+
+```java
+wallet.depositTo(600.0, "chequing", "a description")
+```
 ### Wallet: Getting Last N Transactions
 
 One can fetch the last N transactions for a given account by call to the followinig method which in this acse will return a ```List<Transaction>``` of the past 10 transactions in the account 'chequing'.
