@@ -40,20 +40,22 @@ public class IOAccountTest {
     }
 
     @Test
-    public void testLoadingAcountWhoIsNotReferencedAnymore() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    public void testLoadingAccountWhoIsNotReferencedAnymore() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
         Account accountUSD = new Account("chequing", "AC003", "wallet","US");
         accountUSD.deposit(100.23, "yay");
         accountUSD.deposit(1000.0, "love it");
 
         accountUSD = null;
 
+        System.gc();
+
         Account loadedAccount = Account.loadAccount("AC003");
-        //these should all refer to the same object
+
         assert (loadedAccount != accountUSD);
         assert (loadedAccount.getCurrentBalance().toString().equals("1100.23"));
 
         Account loadedAccount2 = Account.loadAccount("AC003");
-
+        //these should all refer to the same object
         assert( loadedAccount == loadedAccount2 );
 
         Account richGuy = new Account("savings", "AC004","wallet", "FR");

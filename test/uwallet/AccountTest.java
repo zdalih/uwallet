@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
 
-class AccountTest {
+public class AccountTest {
 
     @BeforeAll
     public static void flushDb(){

@@ -15,7 +15,7 @@ public class ConcurrencyTest {
     /**
      * Brute force testing - to find the most obvious of flaws.
      */
-    @RepeatedTest(100)
+    @RepeatedTest(1000)
     public void testConcurrentWrites() throws InterruptedException {
 
         uWalletDatabase.flush();
@@ -182,7 +182,7 @@ public class ConcurrencyTest {
      * Testing doing concurrent actions on the SAME account
      */
 
-    @RepeatedTest(100)
+    @RepeatedTest(1000)
     public void testConcurrentActionsOnSameAccount() throws UniqueAccountIDConstraintException, InterruptedException {
         Account acc1 = new Account("mymoney", "CONC20", "wallet", "US");
         acc1 = null;

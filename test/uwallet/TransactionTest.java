@@ -3,7 +3,7 @@ package uwallet;
 import org.junit.jupiter.api.Test;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
 
-class TransactionTest {
+public class TransactionTest {
 
     @Test
     void testDepositTransaction() throws UniqueAccountIDConstraintException {

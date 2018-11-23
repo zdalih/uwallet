@@ -10,7 +10,7 @@ import uwallet.exceptions.UniqueAccountIDConstraintException;
 import java.util.List;
 
 
-class WalletTest {
+public class WalletTest {
 
     @BeforeAll
     static public void cleandata(){
@@ -119,8 +119,9 @@ class WalletTest {
         Wallet wallet = new Wallet("WALL10", "US");
         try{
             wallet.getAccountBalanceFormatted("nosuchaccount");
+            assert(false);
         }catch (NoSuchAccountInDatabaseException e){
-            System.out.println(e);
+            assert(true);
         }
     }
 
@@ -129,8 +130,9 @@ class WalletTest {
         Wallet wallet = new Wallet("WALL10", "US");
         try{
             wallet.getAccountBalanceBigDecimal("nosuchaccount");
+            assert(false);
         }catch (NoSuchAccountInDatabaseException e){
-            System.out.println(e);
+            assert(true);
         }
     }
 

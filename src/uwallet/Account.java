@@ -112,7 +112,7 @@ class Account {
 
                 if (acc == null)
                     continue;
-                else if (acc.getAccountID() == uniqueIdentifier)
+                else if (acc.getAccountID().equals(uniqueIdentifier))
                     return acc;
 
             }

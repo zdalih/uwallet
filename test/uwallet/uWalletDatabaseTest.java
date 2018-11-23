@@ -7,7 +7,7 @@ import uwallet.exceptions.UniqueAccountIDConstraintException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-class uWalletDatabaseTest {
+public class uWalletDatabaseTest {
 
     @BeforeAll
      static void flushDb(){
