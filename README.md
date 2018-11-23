@@ -60,6 +60,10 @@ List<Transaction> pastTx = wallet.getLastNTransactions("chequing", 10);
 
 The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Transaction.html) is an immutable object that contains a globally unique identifier, the amount of the transaction, the nature of the transaction, and a description of the transaction if one exists.
 
+## Persistence
+
+All records are stored in persistent storage. So when the system restarts one can load previously created wallest and have all functionalities persist. Refer to ```Wallet.deleteAllRecord()``` in the javadoc to learn how to erase all data.
+
 ## Concurrent Usage Note
 
 This library is safe for concurrent user - however if multiple threads are changing the contents of a wallet with a given id - one should be aware that the balance as read by a thread might change as other threads make deposits, withdrawals, or transfers. This is similar to a shared account for a married couple! One may think they have $100.00 in the bank but did not realize that their significant other spent $30.00 and went to the bank to withdraw $80.00 to find out that they had insufficient funds.
