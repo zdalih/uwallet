@@ -71,7 +71,7 @@ This library is safe for concurrent user - however if multiple threads are chang
 If one wants to ensure that the balance will not change during an operation, he will need to put a lock on the account and unlock when the operation required is done.
 
 ```java
-wallet.lockAccount("savings");
-// read the balance of 'savings' and act upon it
-wallet.unloackAccount("savings");
+synchronized( wallet.getAccount("savings") ){
+  // read the balance of 'savings' and act upon it
+}
 ```
