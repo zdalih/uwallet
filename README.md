@@ -58,7 +58,7 @@ One can fetch the last N transactions for a given account by call to the followi
 List<Transaction> pastTx = wallet.getLastNTransactions("chequing", 10);
 ```
 
-The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Transaction.html) is an immutable object that contains a globally unique identifier, the amount of the transaction, the nature of the transaction, and a description of the transaction if one exists.
+The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Transaction.html) is an immutable object that contains a globally unique identifier, a timestamp refering to the time the transaction took place (~1ms uncertainty), the amount of the transaction, the nature of the transaction, and a description of the transaction if one exists.
 
 ## Persistence
 
