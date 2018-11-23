@@ -1,6 +1,6 @@
 package uwallet;
 
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,10 +64,10 @@ class uWalletDatabase {
      * @return Account - an account object as defined in the DB for the given identifier. The identifier must be that
      *          of an account that has been committed to the database already.
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @throws NoSuchObjectInDatabaseException
      *          if no such account with the given identifier is found in the db
      */
-    static synchronized Account getAccount(String identifier) throws NoSuchAccountInDatabaseException{
+    static synchronized Account getAccount(String identifier) throws NoSuchObjectInDatabaseException {
         try {
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -79,7 +79,7 @@ class uWalletDatabase {
             try{
                 rs.getString("id");
             } catch (SQLException e){
-                throw new NoSuchAccountInDatabaseException("No account with identifier " + identifier + " found");
+                throw new NoSuchObjectInDatabaseException("No account with identifier " + identifier + " found");
             }
 
             String id = rs.getString("id");
@@ -138,7 +138,7 @@ class uWalletDatabase {
      * the account) of the last 0-N transactions that are on file for this account.
      *
      */
-    static synchronized List<Transaction> getNLastTransactions(String accountIdentifier, int N) throws  NoSuchAccountInDatabaseException {
+    static synchronized List<Transaction> getNLastTransactions(String accountIdentifier, int N) throws NoSuchObjectInDatabaseException {
         try {
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -217,7 +217,16 @@ class uWalletDatabase {
 
     }
 
-    static synchronized Wallet getWallet(String walletUID){
+    /**
+     * @param walletUID - the id of the wallet object to fetch
+     *
+     * @return Wallet - an wallet object as defined in the DB for the given identifier. The identifier must be that
+     *          of an account that has been committed to the database already.
+     *
+     * @throws NoSuchObjectInDatabaseException
+     *          if no such wallet with the given identifier is found in the db
+     */
+    static synchronized Wallet getWallet(String walletUID) throws NoSuchObjectInDatabaseException{
         try {
             //we want to create a table for the given transactionGroupId.
             Statement stmt = conn.createStatement();
@@ -225,6 +234,12 @@ class uWalletDatabase {
             ResultSet rs = stmt.executeQuery(
                     "SELECT * FROM Accounts " +
                             "WHERE walletId = '" + walletUID + "'");
+
+            try{
+                rs.getString("id");
+            } catch (SQLException e){
+                throw new NoSuchObjectInDatabaseException("No wallet with identifier " + walletUID + " found");
+            }
 
             HashMap<String, String> walletAccounts = new HashMap<String, String>();
 

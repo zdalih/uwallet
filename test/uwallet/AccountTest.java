@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import uwallet.exceptions.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
 
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 
 public class AccountTest {
@@ -16,7 +16,7 @@ public class AccountTest {
     }
 
     @Test
-    public void testAccountGeneratorDifferentCountries() throws UniqueAccountIDConstraintException {
+    public void testAccountGeneratorDifferentCountries() throws UniqueIDConstraintException {
         //list of currency formats
         //https://www.thefinancials.com/Default.aspx?SubSectionID=curformat
 
@@ -40,7 +40,7 @@ public class AccountTest {
     }
 
     @Test
-    public void recurrentBinaryDecimalsDepositTest() throws UniqueAccountIDConstraintException {
+    public void recurrentBinaryDecimalsDepositTest() throws UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "5", "wallet","US");
         accountUSD.deposit(0.1);
         accountUSD.deposit(0.2);
@@ -49,7 +49,7 @@ public class AccountTest {
     }
 
     @Test
-    public void depositSmallValueToBigBalance() throws UniqueAccountIDConstraintException {
+    public void depositSmallValueToBigBalance() throws UniqueIDConstraintException {
         //this is meant to test the accuracy not being limited by that of a double
         Account accountUSD = new Account("chequing" , "6","wallet", "US");
         accountUSD.deposit(1000000000000000000000.00);
@@ -61,7 +61,7 @@ public class AccountTest {
 
 
     @Test
-    public void addMaxDoubleValueTwiceAndAddOne() throws UniqueAccountIDConstraintException {
+    public void addMaxDoubleValueTwiceAndAddOne() throws UniqueIDConstraintException {
         // tests that the precision is truly arbitrary and only limited by memory on the system
         Account accountUSD = new Account("chequing", "7", "wallet","US");
         accountUSD.deposit(Double.MAX_VALUE);
@@ -73,7 +73,7 @@ public class AccountTest {
 
 
     @Test
-    public void recurrentBase10DecimalsDepositTest() throws UniqueAccountIDConstraintException {
+    public void recurrentBase10DecimalsDepositTest() throws UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "8", "wallet","US");
         accountUSD.deposit((double)1/3);
         accountUSD.deposit((double)1/3);
@@ -84,7 +84,7 @@ public class AccountTest {
 
 
     @Test
-    public void testAgainstDoubleRoundingError() throws UniqueAccountIDConstraintException {
+    public void testAgainstDoubleRoundingError() throws UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "9", "wallet", "US");
         accountUSD.deposit(0.1);
         accountUSD.deposit(0.2);
@@ -93,7 +93,7 @@ public class AccountTest {
     }
 
     @Test
-    public void simpleWithdrawalTest() throws UniqueAccountIDConstraintException {
+    public void simpleWithdrawalTest() throws UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "10","wallet", "US");
         accountUSD.deposit(1);
 
@@ -109,7 +109,7 @@ public class AccountTest {
 
 
     @Test
-    public void insufficientFundsWithdrawalTest() throws UniqueAccountIDConstraintException {
+    public void insufficientFundsWithdrawalTest() throws UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "11","wallet", "US");
 
         try{

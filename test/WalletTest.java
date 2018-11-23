@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 import uwallet.Transaction;
 import uwallet.Wallet;
 import uwallet.exceptions.InsufficientFundsException;
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class WalletTest {
     }
 
     @Test
-    public void testCreateWalletAndAddTwoAccount() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    public void testCreateWalletAndAddTwoAccount() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Wallet wallet = new Wallet("WAL001", "US");
         wallet.createNewAccount("savings");
         wallet.createNewAccount("chequing");
@@ -28,7 +28,7 @@ public class WalletTest {
     }
 
     @Test
-    public void depositMoney() throws UniqueAccountIDConstraintException, NoSuchAccountInDatabaseException{
+    public void depositMoney() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException {
         Wallet wallet = new Wallet("WAL002", "US");
         wallet.createNewAccount("savings");
         wallet.depositToAccount(100.50, "savings");
@@ -36,7 +36,7 @@ public class WalletTest {
         assert( wallet.getAccountBalanceFormatted("savings").equals("$100.50") );
     }
 
-    @Test void transferMoney() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException, InsufficientFundsException{
+    @Test void transferMoney() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException, InsufficientFundsException{
         Wallet wallet = new Wallet("WAL003", "US");
         wallet.createNewAccount("chequing");
         wallet.createNewAccount("savings");
@@ -47,7 +47,7 @@ public class WalletTest {
         assert( wallet.getAccountBalanceFormatted("savings").equals("$100.50") );
     }
 
-    @Test void gettingLastTransactions() throws UniqueAccountIDConstraintException, NoSuchAccountInDatabaseException {
+    @Test void gettingLastTransactions() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException {
         Wallet wallet = new Wallet("WAL004", "US");
         wallet.createNewAccount("chequing");
         wallet.depositToAccount(100.50, "chequing");
@@ -71,10 +71,10 @@ public class WalletTest {
         assert( past5tx.get(4).getAmount() == 106.5 );
 
 
-        List<Transaction> past5tx2 =Wallet.loadWallet("WAL004").getLastNTransactions("chequing", 5);
+        List<Transaction> past5tx2 = Wallet.loadWallet("WAL004").getLastNTransactions("chequing", 5);
     }
 
-    @Test void reloadWalletAndGetLastTransaction() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    @Test void reloadWalletAndGetLastTransaction() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Wallet wallet = new Wallet("WAL005", "US");
         wallet.createNewAccount("chequing");
         wallet.depositToAccount(100.50, "chequing");
@@ -104,38 +104,65 @@ public class WalletTest {
     }
 
     @Test
-    public void testDepositToNonExistentAccount() throws NoSuchAccountInDatabaseException {
+    public void testDepositToNonExistentAccount() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Wallet wallet = new Wallet("WALL10", "US");
         try{
             wallet.depositToAccount(100.00, "nosuchaccount");
-        }catch (NoSuchAccountInDatabaseException e){
+        }catch (NoSuchObjectInDatabaseException e){
             assert(true);
         }
     }
 
 
     @Test
-    public void testGetFormattedBalanceToNonExistentAccount() throws NoSuchAccountInDatabaseException {
+    public void testGetFormattedBalanceToNonExistentAccount() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Wallet wallet = new Wallet("WALL10", "US");
         try{
             wallet.getAccountBalanceFormatted("nosuchaccount");
             assert(false);
-        }catch (NoSuchAccountInDatabaseException e){
+        }catch (NoSuchObjectInDatabaseException e){
             assert(true);
         }
     }
 
     @Test
-    public void testGetBigDecBalanceToNonExistentAccount() throws NoSuchAccountInDatabaseException {
+    public void testGetBigDecBalanceToNonExistentAccount() throws UniqueIDConstraintException {
         Wallet wallet = new Wallet("WALL10", "US");
         try{
             wallet.getAccountBalanceBigDecimal("nosuchaccount");
             assert(false);
-        }catch (NoSuchAccountInDatabaseException e){
+        }catch (NoSuchObjectInDatabaseException e){
             assert(true);
         }
     }
 
+    @Test
+    public void testCreatingAWalletThatAlreadyExists() throws UniqueIDConstraintException {
+        Wallet wallet = new Wallet("MINE", "CA");
+        wallet.createNewAccount("savings");
+
+        try{
+            Wallet oopsWallet = new Wallet("MINE", "CA");
+        }catch (UniqueIDConstraintException e) {
+            assert(true);
+            return;
+        }
+
+        assert(false);
+    }
+
+    @Test
+    public void loadWalletThatDoesNotExist() {
+        try{
+            Wallet wallet = Wallet.loadWallet("none");
+        }catch (NoSuchObjectInDatabaseException e){
+         assert (true);
+         return;
+        }
+
+        assert(false);
+
+    }
 
 
 }

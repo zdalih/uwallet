@@ -8,8 +8,8 @@ import java.lang.ref.ReferenceQueue;
 
 
 import uwallet.exceptions.InsufficientFundsException;
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 class Account {
     //RI: There can never be more then two objects in existence with the same id. Once a regionCode
@@ -48,13 +48,13 @@ class Account {
      *                         two accounts should have the same uniqueIdentifier - can not be Null or empty
      * @param currencyCountry  ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
      *                         currency is desired
-     * @throws UniqueAccountIDConstraintException if another Account object with the same uniqueIdentifier already exists either in DB or in memory.
+     * @throws UniqueIDConstraintException if another Account object with the same uniqueIdentifier already exists either in DB or in memory.
      */
-    Account(String accountName, String uniqueIdentifier, String parentWalletUID, String currencyCountry) throws UniqueAccountIDConstraintException {
+    Account(String accountName, String uniqueIdentifier, String parentWalletUID, String currencyCountry) throws UniqueIDConstraintException {
         try {
             this.loadAccount(uniqueIdentifier);
-            throw new UniqueAccountIDConstraintException("Unique Identifier: " + uniqueIdentifier + " is already allocated to an account!");
-        } catch (NoSuchAccountInDatabaseException e) {
+            throw new UniqueIDConstraintException("Unique Identifier: " + uniqueIdentifier + " is already allocated to an account!");
+        } catch (NoSuchObjectInDatabaseException e) {
             this.id = uniqueIdentifier;
             this.parentWalletUID = parentWalletUID;
             this.accountName = accountName;
@@ -100,10 +100,10 @@ class Account {
      *
      * @param uniqueIdentifier the uniqueIdentifer of the account that wants to be accessed. can not be empty or null
      * @return Account object as defined within the DB
-     * @throws NoSuchAccountInDatabaseException if the account with the given uniqueIdentifier does not match any account that has been committed to
+     * @throws NoSuchObjectInDatabaseException if the account with the given uniqueIdentifier does not match any account that has been committed to
      *                                          the database as well as accounts in memory.
      */
-    static Account loadAccount(String uniqueIdentifier) throws NoSuchAccountInDatabaseException {
+    static Account loadAccount(String uniqueIdentifier) throws NoSuchObjectInDatabaseException {
 
         synchronized (loadedAccountObjects) {
             for (Iterator<WeakReference<Account>> itr = loadedAccountObjects.iterator(); itr.hasNext(); ) {
@@ -208,7 +208,7 @@ class Account {
     synchronized List<Transaction> getPastTransactions(int N) {
         try {
             return uWalletDatabase.getNLastTransactions(this.id, N);
-        } catch (NoSuchAccountInDatabaseException e) {
+        } catch (NoSuchObjectInDatabaseException e) {
             //this account has never been committed to the DB yet
             //so return an empty list
             return new ArrayList<Transaction>();

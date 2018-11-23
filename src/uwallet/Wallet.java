@@ -1,9 +1,8 @@
 package uwallet;
 
 import uwallet.exceptions.InsufficientFundsException;
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
-import uwallet.Transaction;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -37,16 +36,23 @@ public class Wallet{
      * @param regionCode
      *         ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
      *         currency is desired
+     * @throws UniqueIDConstraintException
+     *          if another wallet object with the same uniqueIdentifier already exists either in DB.
      */
-    public Wallet(String walletUID, String regionCode){
-        this.regionCode = regionCode;
-        this.walletUID = walletUID;
+    public Wallet(String walletUID, String regionCode) throws UniqueIDConstraintException{
+        try{
+            this.loadWallet(walletUID);
+            throw new UniqueIDConstraintException("Unique Identifier: " + walletUID + " is already allocated to a wallet!");
+        } catch (NoSuchObjectInDatabaseException e){
+            this.regionCode = regionCode;
+            this.walletUID = walletUID;
 
-        uWalletDatabase db = new uWalletDatabase();
-        db.insertWallet(this);
+            uWalletDatabase db = new uWalletDatabase();
+            db.insertWallet(this);
+        }
     }
 
-    static public Wallet loadWallet(String walletUID){
+    static public Wallet loadWallet(String walletUID) throws NoSuchObjectInDatabaseException {
         uWalletDatabase db = new uWalletDatabase();
         Wallet wallet = db.getWallet(walletUID);
         return wallet;
@@ -73,16 +79,16 @@ public class Wallet{
      * @param accountName -  String
      *                    representing the name to be given to this account. Empty or Null strings are not allowed
      *
-     * @throws UniqueAccountIDConstraintException
+     * @throws UniqueIDConstraintException
      *                    if this wallet already has an account with the desired name.
      */
-    public void createNewAccount(String accountName) throws UniqueAccountIDConstraintException{
+    public void createNewAccount(String accountName) throws UniqueIDConstraintException {
         String accountUID = this.walletUID + "ACC" + String.valueOf(this.acountNameToAccountIdMap.size() + 1);
         try {
             Account acc = new Account(accountName, accountUID, this.walletUID, this.regionCode);
             this.acountNameToAccountIdMap.put(accountName, accountUID);
-        } catch ( UniqueAccountIDConstraintException e ){
-            throw new UniqueAccountIDConstraintException("Wallet already has account with name '" + accountName + "'");
+        } catch ( UniqueIDConstraintException e ){
+            throw new UniqueIDConstraintException("Wallet already has account with name '" + accountName + "'");
         }
     }
 
@@ -92,17 +98,17 @@ public class Wallet{
      * @param accountName - String
      *               the name of the account whose balance we want
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @throws NoSuchObjectInDatabaseException
      *               if no such account in this wallet have the given name
      *
      * @return the formatted account balance using the region code for this wallet.
      */
-    public String getAccountBalanceFormatted(String accountName) throws NoSuchAccountInDatabaseException{
+    public String getAccountBalanceFormatted(String accountName) throws NoSuchObjectInDatabaseException {
         try{
             Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
             return acc.getFormattedBalance();
-        }catch (NoSuchAccountInDatabaseException e){
-            throw  new NoSuchAccountInDatabaseException("No account with name '" + accountName + "' associated to this wallet.");
+        }catch (NoSuchObjectInDatabaseException e){
+            throw  new NoSuchObjectInDatabaseException("No account with name '" + accountName + "' associated to this wallet.");
         }
     }
 
@@ -112,17 +118,17 @@ public class Wallet{
      * @param accountName - String
      *               the name of the account whose balance we want
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @throws NoSuchObjectInDatabaseException
      *               if no such account in this wallet have the given name
      *
      * @return the account balance as a BigDecimal.
      */
-    public BigDecimal getAccountBalanceBigDecimal(String accountName) throws NoSuchAccountInDatabaseException{
+    public BigDecimal getAccountBalanceBigDecimal(String accountName) throws NoSuchObjectInDatabaseException {
         try{
             Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
             return acc.getCurrentBalance();
-        }catch (NoSuchAccountInDatabaseException e){
-            throw  new NoSuchAccountInDatabaseException("No account with name '" + accountName + "' associated to this wallet.");
+        }catch (NoSuchObjectInDatabaseException e){
+            throw  new NoSuchObjectInDatabaseException("No account with name '" + accountName + "' associated to this wallet.");
         }
     }
 
@@ -135,14 +141,18 @@ public class Wallet{
      * @param accountName - String
      *               the name of the account to deposit money to
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @param description String (optional).
+     *            description[0] is a String of at most 50char that is not null. All other items in description
+     *            are ignored. The default description is N/A. Should not be an empty string.
+     *
+     * @throws NoSuchObjectInDatabaseException
      *               if the accountName does not represent an account that is held by this wallet.
      */
-    public void depositToAccount(double amount, String accountName) throws NoSuchAccountInDatabaseException {
+    public void depositToAccount(double amount, String accountName, String... description) throws NoSuchObjectInDatabaseException {
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
 
         //lock the account
-        acc.deposit(amount);
+        acc.deposit(amount, description);
 
 
     }
@@ -156,16 +166,20 @@ public class Wallet{
      * @param accountName - String
      *               the name of the account to deposit money to
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @param description String (optional).
+     *            description[0] is a String of at most 50char that is not null. All other items in description
+     *            are ignored. The default description is N/A. Should not be an empty string.
+     *
+     * @throws NoSuchObjectInDatabaseException
      *               if the accountName does not represent an account that is held by this wallet.
      * @throws InsufficientFundsException
      *               if the account does not have sufficient funds for the withdrawal.
      */
-    public void withdrawFromAccount(double amount, String accountName)
-            throws NoSuchAccountInDatabaseException, InsufficientFundsException{
+    public void withdrawFromAccount(double amount, String accountName, String... description)
+            throws NoSuchObjectInDatabaseException, InsufficientFundsException{
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
 
-        acc.withdraw(amount);
+        acc.withdraw(amount, description);
     }
 
     /**
@@ -180,20 +194,24 @@ public class Wallet{
      * @param toAccountName - String
      *                the name of the account to deposit the money to
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @param description String (optional).
+     *            description[0] is a String of at most 50char that is not null. All other items in description
+     *            are ignored. The default description is N/A. Should not be an empty string.
+     *
+     * @throws NoSuchObjectInDatabaseException
      *               if one of the two account name do not refer to a valid account for this wallet
      * @throws InsufficientFundsException
      *               if the fromAccount does not have sufficient funds for the withdrawal.
      */
-    public void transfer(double amount, String fromAccountName, String toAccountName)
-            throws NoSuchAccountInDatabaseException, InsufficientFundsException{
+    public void transfer(double amount, String fromAccountName, String toAccountName,  String... description)
+            throws NoSuchObjectInDatabaseException, InsufficientFundsException{
         Account fromAcc = Account.loadAccount(this.acountNameToAccountIdMap.get(fromAccountName));
         Account toAcc = Account.loadAccount(this.acountNameToAccountIdMap.get(toAccountName));
 
         //if we can withdraw the money, depositing it is not an issue
 
-        fromAcc.withdraw(amount);
-        toAcc.deposit(amount);
+        fromAcc.withdraw(amount, description);
+        toAcc.deposit(amount, description);
 
 
 
@@ -209,12 +227,25 @@ public class Wallet{
      *   the account) of the last 0-N transactions that are on file for this account. The list is made
      *   of Transaction objects
      *
-     * @throws NoSuchAccountInDatabaseException
+     * @throws NoSuchObjectInDatabaseException
      *               if one of the two account name do not refer to a valid account for this wallet
      */
-    public List<Transaction> getLastNTransactions(String accountName, int N) throws  NoSuchAccountInDatabaseException{
+    public List<Transaction> getLastNTransactions(String accountName, int N) throws NoSuchObjectInDatabaseException {
         Account acc = Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
         return acc.getPastTransactions(N);
+    }
+
+
+    /**
+     *
+     * @param accountName - String
+     *                    the account whose transaction history we want to access
+     * @return the Account object for the given account name.
+     * @throws NoSuchObjectInDatabaseException
+     *               if one of the two account name do not refer to a valid account for this wallet
+     */
+    public Account getAccount(String accountName) throws NoSuchObjectInDatabaseException {
+        return Account.loadAccount(this.acountNameToAccountIdMap.get(accountName));
     }
 
 

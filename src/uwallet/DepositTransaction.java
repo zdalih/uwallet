@@ -1,6 +1,6 @@
 package uwallet;
 
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 
      DepositTransaction(double amount,  Account account, String txID, String... description){super(amount, account, txID, description);}
      DepositTransaction(Timestamp timestamp, String uuid, String account,
-                              double amount, String endingBalance, String description) throws NoSuchAccountInDatabaseException {
+                              double amount, String endingBalance, String description) throws NoSuchObjectInDatabaseException {
         super(timestamp, uuid, account, amount, endingBalance, description);
     }
     @Override

@@ -1,8 +1,10 @@
 import org.junit.jupiter.api.RepeatedTest;
 import uwallet.Wallet;
 import uwallet.exceptions.InsufficientFundsException;
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
+import uwallet.exceptions.UniqueIDConstraintException;
+
+import java.math.BigDecimal;
 
 public class WalletConcurrentTest {
 
@@ -72,7 +74,7 @@ public class WalletConcurrentTest {
     }
 
     @RepeatedTest(1000)
-    public void testOneWalletConcurrentAccess() throws UniqueAccountIDConstraintException, NoSuchAccountInDatabaseException, InterruptedException {
+    public void testOneWalletConcurrentAccess() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException, InterruptedException {
         Wallet.deleteAllRecord("delete");
         Wallet wallet = new Wallet("WALL002", "US");
         wallet.createNewAccount("chequing");
@@ -86,10 +88,18 @@ public class WalletConcurrentTest {
                 try {
                     Wallet wallet = Wallet.loadWallet("WALL002");
 
-                    if (!wallet.getAccountBalanceFormatted("chequing").equals("$150.00")){
-                        System.out.println("Test Fail, $150.00 is no balance of account.");
-                        System.exit(0);
+                    synchronized (wallet.getAccount("chequing")){
+                        BigDecimal currentBalance = wallet.getAccountBalanceBigDecimal("chequing");
+                        wallet.depositToAccount(200.0, "chequing", "a test");
+                        BigDecimal finalBalance = currentBalance.add(new BigDecimal(200.0));
+
+                        if (!wallet.getAccountBalanceBigDecimal("chequing").toString().equals(finalBalance.toString())){
+                            System.out.println("Test Fail. Expected Balance = " + finalBalance + " but balance is " + wallet.getAccountBalanceBigDecimal("chequing").toString());
+                            System.exit(0);
+                        }
+
                     }
+
 
                 } catch (Exception e) {
                     System.err.println(e.getClass().getName() + ": " + e.getMessage());
@@ -104,9 +114,15 @@ public class WalletConcurrentTest {
                 try {
                     Wallet wallet = Wallet.loadWallet("WALL002");
 
-                    if (!wallet.getAccountBalanceFormatted("chequing").equals("$150.00")){
-                        System.out.println("Test Fail, $150.00 is no balance of account.");
-                        System.exit(0);
+                    synchronized (wallet.getAccount("chequing")) {
+                        BigDecimal currentBalance = wallet.getAccountBalanceBigDecimal("chequing");
+                        wallet.depositToAccount(500.0, "chequing", "a second test");
+                        BigDecimal finalBalance = currentBalance.add(new BigDecimal(500.0));
+
+                        if (!wallet.getAccountBalanceBigDecimal("chequing").toString().equals(finalBalance.toString())) {
+                            System.out.println("Test Fail. Expected Balance = " + finalBalance + " but balance is " + wallet.getAccountBalanceBigDecimal("chequing").toString());
+                            System.exit(0);
+                        }
                     }
 
                 } catch (Exception e) {

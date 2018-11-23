@@ -1,12 +1,12 @@
 package uwallet;
 
 import org.junit.jupiter.api.Test;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 public class TransactionTest {
 
     @Test
-    void testDepositTransaction() throws UniqueAccountIDConstraintException {
+    void testDepositTransaction() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "A", "wallet", "US");
         testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(100, testAccount, "test");
@@ -15,7 +15,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testDepositTransactionWithZero() throws UniqueAccountIDConstraintException {
+    void testDepositTransactionWithZero() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "B","wallet", "US");
         testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(0, testAccount, "test");
@@ -24,7 +24,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testWithdrawTransactionResultZero() throws UniqueAccountIDConstraintException {
+    void testWithdrawTransactionResultZero() throws UniqueIDConstraintException {
         Account testAccount =  new Account("test", "C", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(100000.00, testAccount, "test");
@@ -34,7 +34,7 @@ public class TransactionTest {
 
 
     @Test
-    void testWithdrawalTransaction() throws UniqueAccountIDConstraintException {
+    void testWithdrawalTransaction() throws UniqueIDConstraintException {
         Account testAccount = new  Account("test", "D", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(100, testAccount, "test");
@@ -43,7 +43,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testWithdrawalTransactionToNegative() throws UniqueAccountIDConstraintException {
+    void testWithdrawalTransactionToNegative() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "E", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(200000.00, testAccount, "test");
@@ -52,7 +52,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testDepositAndWithdrawalCreationDoesNotChangeAccountBalance() throws UniqueAccountIDConstraintException {
+    void testDepositAndWithdrawalCreationDoesNotChangeAccountBalance() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "F", "wallet","US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
@@ -62,7 +62,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testDepositSymbolISDR() throws UniqueAccountIDConstraintException {
+    void testDepositSymbolISDR() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "G", "wallet","US");
         testAccount.deposit(100000.00);
         DepositTransaction depositTX = new DepositTransaction(677.0, testAccount, "test");
@@ -71,7 +71,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testWithdrawalSymbolISCR() throws UniqueAccountIDConstraintException {
+    void testWithdrawalSymbolISCR() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "H","wallet", "US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "test");
@@ -80,7 +80,7 @@ public class TransactionTest {
     }
 
     @Test
-    void testUniqueIdentifier() throws UniqueAccountIDConstraintException {
+    void testUniqueIdentifier() throws UniqueIDConstraintException {
         Account testAccount = new Account("test", "I","wallet", "US");
         testAccount.deposit(100000.00);
         WithdrawalTransaction withTX = new WithdrawalTransaction(400.0, testAccount, "TEST");

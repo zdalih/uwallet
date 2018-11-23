@@ -1,6 +1,6 @@
 package uwallet;
 
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
 
 
 import java.sql.Timestamp;
@@ -56,7 +56,7 @@ public abstract class Transaction {
 
      Transaction (Timestamp timestamp, String uuid, String account,
                            double amount, String endingBalance, String description)
-            throws NoSuchAccountInDatabaseException {
+            throws NoSuchObjectInDatabaseException {
         this.timestamp = timestamp;
         this.uuid = uuid;
         this.involvedAccount = Account.loadAccount(account);

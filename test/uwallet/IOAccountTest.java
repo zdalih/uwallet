@@ -3,8 +3,8 @@ package uwallet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import uwallet.exceptions.NoSuchAccountInDatabaseException;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 public class IOAccountTest {
 
@@ -14,7 +14,7 @@ public class IOAccountTest {
     }
 
     @Test
-    public void testLoadingSameAccountMultipleTimesYieldSameReference() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    public void testLoadingSameAccountMultipleTimesYieldSameReference() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "AC002","wallet", "US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
@@ -27,7 +27,7 @@ public class IOAccountTest {
     }
 
     @Test
-    public void testLoadingSameAccountMultipleTimesYieldSameReferenceWithoutComit() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    public void testLoadingSameAccountMultipleTimesYieldSameReferenceWithoutComit() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "AC006", "wallet","US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
@@ -40,7 +40,7 @@ public class IOAccountTest {
     }
 
     @Test
-    public void testLoadingAccountWhoIsNotReferencedAnymore() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    public void testLoadingAccountWhoIsNotReferencedAnymore() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "AC003", "wallet","US");
         accountUSD.deposit(100.23, "yay");
         accountUSD.deposit(1000.0, "love it");
@@ -67,7 +67,7 @@ public class IOAccountTest {
     }
 
     @Test
-    public void testLoadingAcountWhoIsNotReferencedAnymoreWithNoComits() throws NoSuchAccountInDatabaseException, UniqueAccountIDConstraintException {
+    public void testLoadingAcountWhoIsNotReferencedAnymoreWithNoComits() throws NoSuchObjectInDatabaseException, UniqueIDConstraintException {
         Account accountUSD = new Account("chequing", "AC007", "wallet","US");
         accountUSD.deposit(100.0, "yay");
         accountUSD.deposit(1000.0, "love it");
@@ -77,7 +77,7 @@ public class IOAccountTest {
 
         try{
             Account loadedAccount = Account.loadAccount("AC007");
-        } catch (NoSuchAccountInDatabaseException e){
+        } catch (NoSuchObjectInDatabaseException e){
             assert(false);
             return;
         }

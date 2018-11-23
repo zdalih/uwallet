@@ -3,7 +3,7 @@ package uwallet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import uwallet.exceptions.InsufficientFundsException;
-import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.exceptions.UniqueIDConstraintException;
 
 public class ConcurrencyTest {
 
@@ -183,7 +183,7 @@ public class ConcurrencyTest {
      */
 
     @RepeatedTest(1000)
-    public void testConcurrentActionsOnSameAccount() throws UniqueAccountIDConstraintException, InterruptedException {
+    public void testConcurrentActionsOnSameAccount() throws UniqueIDConstraintException, InterruptedException {
         Account acc1 = new Account("mymoney", "CONC20", "wallet", "US");
         acc1 = null;
         System.gc();
