@@ -67,3 +67,11 @@ All records are stored in persistent storage. So when the system restarts one ca
 ## Concurrent Usage Note
 
 This library is safe for concurrent user - however if multiple threads are changing the contents of a wallet with a given id - one should be aware that the balance as read by a thread might change as other threads make deposits, withdrawals, or transfers. This is similar to a shared account for a married couple! One may think they have $100.00 in the bank but did not realize that their significant other spent $30.00 and went to the bank to withdraw $80.00 to find out that they had insufficient funds.
+
+If one wants to ensure that the balance will not change during an operation, he will need to put a lock on the account and unlock when the operation required is done.
+
+```java
+wallet.lockAccount("savings");
+// read the balance of 'savings' and act upon it
+wallet.unloackAccount("savings");
+```
