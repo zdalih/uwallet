@@ -29,9 +29,9 @@ wallet.createNewAccount("savings");
 ```
 
 We can now call on to one of the following mechanisms onto accounts:
-* wallet.depositTo(1000.00, "chequing")
-* wallet.withdrawFrom(500.0, "chequing") - will not allow the account's balance to drop below 0.
-* wallet.transfer(500.0, "chequing", "savings") - will not allow the 'from' account's balance to drop below 0.
+* ``` wallet.depositTo(1000.00, "chequing") ```
+* ``` wallet.withdrawFrom(500.0, "chequing") ``` - will not allow the account's balance to drop below 0.
+* ``` wallet.transfer(500.0, "chequing", "savings") ```  - will not allow the 'from' account's balance to drop below 0.
 
 For each of these methods, one may add an optional description by adding a description string at the end of the method.
 
