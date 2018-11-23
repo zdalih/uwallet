@@ -1,6 +1,6 @@
 # uwallet
 
-uwallet is a wallet package for the Infiniti Bank suite of interstellar financial systems. It includes a framework for the creation of wallets with multiple accounts, with support for all currencies and geographic regions. 
+uwallet is a wallet package for the I-Bank suite of interstellar financial systems. It includes a framework for the creation of wallets with multiple accounts, with support for all currencies and geographic regions. 
 
 ## Docs
 [The javadocs for the uwallet package](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/package-tree.html)
