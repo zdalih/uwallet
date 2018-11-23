@@ -46,8 +46,8 @@ One can get the balance as formatted by regional customs, or simple as a BigDeci
 
 ```java
 wallet.depositTo(600.0, "chequing", "a description");
-wallet.getAccountBalanceFormatted("chequing"); // returns "$600.00"
-wallet.getAccountBalanceBigDecimal("chequing"); //returns new BigDecimal("600.0")
+String balance = wallet.getAccountBalanceFormatted("chequing"); // returns "$600.00"
+BigDecimal balance = wallet.getAccountBalanceBigDecimal("chequing"); //returns new BigDecimal("600.0")
 ```
 
 #### Wallet: Getting Last N Transactions
@@ -55,7 +55,7 @@ wallet.getAccountBalanceBigDecimal("chequing"); //returns new BigDecimal("600.0"
 One can fetch the last N transactions for a given account by call to the followinig method which in this case will return a ```List<Transaction>``` of the past 10 transactions in the account 'chequing'.
 
 ```java
-wallet.getLastNTransactions("chequing", 10);
+List<Transaction> pastTx = wallet.getLastNTransactions("chequing", 10);
 ```
 
 The [Transaction](https://htmlpreview.github.io/?https://raw.githubusercontent.com/zdalih/uwallet/master/javadoc/uwallet/Transaction.html) is an immutable object that contains a globally unique identifier, the amount of the transaction, the nature of the transaction, and a description of the transaction if one exists.
