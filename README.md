@@ -41,7 +41,7 @@ wallet.depositTo(600.0, "chequing", "a description")
 ```
 ### Wallet: Getting Last N Transactions
 
-One can fetch the last N transactions for a given account by call to the followinig method which in this acse will return a ```List<Transaction>``` of the past 10 transactions in the account 'chequing'.
+One can fetch the last N transactions for a given account by call to the followinig method which in this case will return a ```List<Transaction>``` of the past 10 transactions in the account 'chequing'.
 
 ```java
 wallet.getLastNTransactions("chequing", 10);
