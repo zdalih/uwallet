@@ -8,15 +8,17 @@ import java.util.ArrayList;
 import java.sql.*;
 import java.io.File;
 
+
+/**
+ * A static class with static methods to store and fetch Account, Transaction, and Wallet
+ * objects. It is meant to try to seperate the implementation and choice of DB from the rest of the
+ * application - ideally one simply changes this class to change the db.
+ *
+ * RI: dbDir is where the squlite .db file is.
+ *
+ */
+
 class uWalletDatabase {
-
-    //RI: dbDir is where the squlite .db file is.
-    //
-    //AF: A static class with static methods to store and fetch Account, Transaction, and Wallet
-    //objects. It is meant to try to seperate the implementation and choice of DB from the rest of the
-    //application - ideally one simply changes this class to change the db.
-
-
 
     private final static File dbDir = new File("sqlite");
     private final static String dbFilename = "uwallet.db";
@@ -61,6 +63,8 @@ class uWalletDatabase {
     }
 
     /**
+     * Get an account object whose record is stored.
+     *
      * @return Account - an account object as defined in the DB for the given identifier. The identifier must be that
      *          of an account that has been committed to the database already.
      *
@@ -99,6 +103,7 @@ class uWalletDatabase {
     }
 
     /**
+     *  Stores or updates a Transactioni object to the persistent record.
      *
      * @param transaction the Transaction object that we wish to store in the DB
      */
@@ -134,6 +139,8 @@ class uWalletDatabase {
     }
 
     /**
+     * Get the last N transactions from the records for a given account.
+     *
      * @return List<Transaction> - which is a list of length 0-N (limited by the total number of transactions for
      * the account) of the last 0-N transactions that are on file for this account.
      *
@@ -193,6 +200,8 @@ class uWalletDatabase {
     }
 
     /**
+     * Stores a wallet object to the records.
+     *
      * inserts a new wallet row in the db or updates an existing one
      * @param wallet the Wallet object to be inserted into the db
      */
@@ -218,6 +227,8 @@ class uWalletDatabase {
     }
 
     /**
+     * Fetches a wallet object from the records.
+     *
      * @param walletUID - the id of the wallet object to fetch
      *
      * @return Wallet - an wallet object as defined in the DB for the given identifier. The identifier must be that
@@ -265,7 +276,10 @@ class uWalletDatabase {
         return null;
     }
 
-
+    /**
+     *
+     * erases ALL data in the records.
+     */
     static synchronized void flush(){
         try{
             //we want to create a table for the given transactionGroupId.
@@ -283,6 +297,7 @@ class uWalletDatabase {
             System.exit(0);
         }
     }
+
 
     static private Connection connect(){
 

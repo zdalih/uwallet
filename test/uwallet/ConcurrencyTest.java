@@ -215,10 +215,6 @@ public class ConcurrencyTest {
                     loadedAccount20.withdraw(300);
 
                 } catch (InsufficientFundsException e) {
-                    //in this case, t2, which was started after
-                    //t1 has attempted a withdrawal before t1 has finished.
-                    //is that ok? mhh
-                    System.out.println("no money");
                     return;
                 } catch (Exception e) {
                     System.err.println(e.getClass().getName() + ": " + e.getMessage());

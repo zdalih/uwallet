@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import uwallet.exceptions.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
 
+import uwallet.exceptions.NoSuchObjectInDatabaseException;
 import uwallet.exceptions.UniqueIDConstraintException;
 
 
@@ -120,6 +121,28 @@ public class AccountTest {
         }
 
         assert(false);
+    }
+
+    @Test
+    public void testLoadingAccountAllFields() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException {
+        Account accountUSD = new Account("chequing", "110","wallet", "US");
+        accountUSD.deposit(300.0, "deposit");
+
+        accountUSD = null;
+        System.gc();
+
+        Account loadedAccountUsd = Account.loadAccount("110");
+
+        assert(loadedAccountUsd.getFormattedBalance().equals("$300.00"));
+        assert(loadedAccountUsd.getLastTxId() == 1);
+        assert(loadedAccountUsd.getAccountID().equals("110"));
+        assert(loadedAccountUsd.getRegionCode().equals("US"));
+        assert(loadedAccountUsd.getParentWalletUID().equals("wallet"));
+        //check transaction
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getAmount() == 300.0);
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getTXSymbol().equals("DR"));
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getDescription().equals("deposit"));
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getUUID().equals("110TX1"));
     }
 
 }

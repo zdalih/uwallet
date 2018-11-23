@@ -4,6 +4,7 @@ import org.junit.jupiter.api.*;
 import uwallet.exceptions.NoSuchObjectInDatabaseException;
 import uwallet.exceptions.UniqueIDConstraintException;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,71 @@ public class uWalletDatabaseTest {
     @BeforeAll
      static void flushDb(){
         uWalletDatabase.flush();
+    }
+
+    @Test
+    public void testInsertingAndLoadingTransaction() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException {
+        Account acc = new Account("chequing", "210","wallet", "US");
+        DepositTransaction tx = new DepositTransaction(100, acc, "TX1" );
+        Timestamp expectedTimestamp = tx.getTimestamp();
+
+        uWalletDatabase.insertTransaction(tx);
+        tx = null;
+
+        System.gc();
+
+        Transaction txLoaded = uWalletDatabase.getNLastTransactions("210", 1).get(0);
+        assert( txLoaded.getDescription().equals("N/A") );
+        assert( txLoaded.getUUID().equals("210TX1") );
+        assert( txLoaded.getAmount() == 100 );
+        assert( txLoaded.getTXSymbol().equals("DR") );
+        assert( txLoaded.getTimestamp().toString().equals(expectedTimestamp.toString()) );
+    }
+
+    @Test
+    public void testInsertingAndLoadingAccountAllFields() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException {
+        Account accountUSD = new Account("chequing", "110","wallet", "US");
+        accountUSD.deposit(300.0, "deposit");
+
+        uWalletDatabase.insertAccount(accountUSD);
+        accountUSD = null;
+        System.gc();
+
+        Account loadedAccountUsd = uWalletDatabase.getAccount("110");
+
+        assert(loadedAccountUsd.getFormattedBalance().equals("$300.00"));
+        assert(loadedAccountUsd.getLastTxId() == 1);
+        assert(loadedAccountUsd.getAccountID().equals("110"));
+        assert(loadedAccountUsd.getRegionCode().equals("US"));
+        assert(loadedAccountUsd.getParentWalletUID().equals("wallet"));
+        //check transaction
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getAmount() == 300.0);
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getTXSymbol().equals("DR"));
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getDescription().equals("deposit"));
+        assert(loadedAccountUsd.getPastTransactions(1).get(0).getUUID().equals("110TX1"));
+    }
+
+    @Test
+    public void testInsertingAndLoadingWallet() throws UniqueIDConstraintException, NoSuchObjectInDatabaseException {
+        Wallet wallet = new Wallet("TEST" , "US");
+        wallet.createNewAccount("savings");
+        wallet.depositToAccount(100,"savings", "test");
+        wallet.createNewAccount("chequing");
+        uWalletDatabase.insertWallet(wallet);
+
+        wallet = null;
+        System.gc();
+
+        Wallet walletLoaded = uWalletDatabase.getWallet("TEST");
+
+        assert( walletLoaded.getUID().equals("TEST") );
+        assert( walletLoaded.getRegionCode().equals("US") );
+        assert( walletLoaded.getAccountBalanceFormatted("savings").equals("$100.00") );
+        assert( walletLoaded.getAccountBalanceFormatted("chequing").equals("$0.00") );
+        assert( walletLoaded.getLastNTransactions("savings", 1).get(0).getTXSymbol().equals("DR") );
+        assert( walletLoaded.getLastNTransactions("savings", 1).get(0).getAmount() == 100 );
+        assert( walletLoaded.getLastNTransactions("savings", 1).get(0).getDescription().equals("test"));
+
     }
 
     @Test

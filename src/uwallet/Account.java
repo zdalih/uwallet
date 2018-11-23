@@ -11,18 +11,22 @@ import uwallet.exceptions.InsufficientFundsException;
 import uwallet.exceptions.NoSuchObjectInDatabaseException;
 import uwallet.exceptions.UniqueIDConstraintException;
 
+
+/**
+ * Represents a financial account.  When calls to deposit and withdrawal
+ * are made the whole account gets locked until it is done pushing changes to the uWalletDatabase.
+ * it has a parentUID which can be any String and will not hamper the functioning of the class.
+ * the balance is of arbitrary accuracy and size. When the constructor is called - a new Account is
+ * that must have a non-existent id is created. To get the object referring to a previously created account
+ * one must use the static loadAccount(id) method. To assure unique creation of Transaction ID the account
+ * keeps track of last_txId which get incremented after each new Transaction.
+ *
+ * RI: There can never be more then two objects in existence with the same id. Once a regionCode
+ * is chosen to initialize an account it can not be changed. The last_txID needs to be incremented
+ * after ALL new deposit or withdrawal calls.
+ */
+
 class Account {
-    //RI: There can never be more then two objects in existence with the same id. Once a regionCode
-    //is chosen to initialize an account it can not be changed. The last_txID needs to be incremented
-    //after ALL new deposit or withdrawal calls.
-    //
-    //AF: Represents a financial account.  When calls to deposit and withdrawal
-    //are made the whole account gets locked until it is done pushing changes to the uWalletDatabase.
-    //it has a parentUID which can be any String and will not hamper the functioning of the class.
-    //the balance is of arbitrary accuracy and size. When the constructor is called - a new Account is
-    //that must have a non-existent id is created. To get the object referring to a previously created account
-    //one must use the static loadAccount(id) method. To assure unique creation of Transaction ID the account
-    //keeps track of last_txId which get incremented after each new Transaction.
 
     //TODO: make language an option for the user to choose
     private static final String LANGUAGE = "en";
@@ -74,6 +78,16 @@ class Account {
         }
     }
 
+
+    /**
+     * Creates an Account object all variables as given.
+     *
+     * @param accountName      the name of the account. a String that can not be empty.
+     * @param uniqueIdentifier a string that uniquely identifies this account - needs to be globally unique. No
+     *                         two accounts should have the same uniqueIdentifier - can not be Null or empty
+     * @param currencyCountry  ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country whose
+     *                         currency is desired
+     */
     Account(String accountName, String uniqueIdentifier, String parentWalletUID,
             String currencyCountry, String balance, int last_txID) {
 
@@ -94,9 +108,9 @@ class Account {
     }
 
     /**
-     * Loads an Account object from persistent database given the uniqueIdentifier. requires the SQLite JDBC driver library
-     * dependency. If a reference to the account object with the identifier already exists, the object will be returned
-     * instead of creating a new one to ensure that no 2 Account object exists to represent a single account.
+     * Loads an Account object from persistent database given the uniqueIdentifier.If a reference to the account object
+     * with the identifier already exists, the object will be returned instead of creating a new one to ensure that no 2
+     * Account object exists to represent a single account.
      *
      * @param uniqueIdentifier the uniqueIdentifer of the account that wants to be accessed. can not be empty or null
      * @return Account object as defined within the DB
@@ -125,13 +139,11 @@ class Account {
     }
 
     /**
-     * Increases the balance by the given amount, and adds a DepositTransaction representing this transaction
-     * to the list of transactions that have not been commited to transaction history. Please use Account.commit()
-     * to ensure that the changes will persist past system shutdown.
+     * Increases the balance by the given amount. The amount can not be null.
      *
      * @param amount - double
-     *               the amount to be deposited. must be positive. the balance is an arbitrary precision class and will
-     *               get as big as the systems memory allows it
+     *            the amount to be deposited. must be positive. the balance is an arbitrary precision class and will
+     *            get as big as the systems memory allows it
      *
      * @param description String (optional).
      *            description[0] is a String of at most 50char that is not null. All other items in description
@@ -149,9 +161,7 @@ class Account {
 
 
     /**
-     * Decreases the balance by the given amount, and adds a WithdrawalTransaction representing this transaction
-     * to the list of transactions that have not been commited to transaction history. Please use Account.commit()
-     * to ensure that the changes will persist past system shutdown.
+     * Decreases the balance by the given amount. The amount can not be null.
      *
      * @param amount - double
      *               the amount to be withdrawn. must be positive. the balance is an arbitrary precision class and will
@@ -180,9 +190,7 @@ class Account {
     /**
      * updates the persistent data to contain transactions that have not been saved yet. Must be run after complete
      * operations on the account to ensure that they will be persistent. Uploads the state of the account and
-     * transactions to SQLite databases. Requires the JDBC SQLite driver dependency.
-     *
-     * It will create a directory ./sqlite to store database files if it does not exist.
+     * transactions to database.
      */
     private void commit(List<Transaction> uncomitedTransactions ){
 
@@ -197,13 +205,14 @@ class Account {
     }
 
     /**
+     *
+     * Return the past N transaction
+     *
      * @return List<Transaction> - which is a list of length 0-N (limited by the total number of transactions for
      * the account) of the last 0-N transactions that are on file for this account. If multiple transactions have
      * timestamp within 1ms of each other - which transaction is prioritized is not defined. Only returns
      * transactions made BEFORE method is called.
      *
-     * This will only return transactions that have been made before calls to account.commit(), as those
-     * are the only transactions that have actually been recorded.
      */
     synchronized List<Transaction> getPastTransactions(int N) {
         try {
@@ -216,6 +225,8 @@ class Account {
     }
 
     /**
+     * Get this account's name.
+     *
      * @return String - the name of the account
      */
     String getAccountName(){
@@ -223,6 +234,7 @@ class Account {
     }
 
     /**
+     * Get this accounts' unique identifier.
      * @return int - the account id
      */
     String getAccountID(){
@@ -230,6 +242,7 @@ class Account {
     }
 
     /**
+     * Get this accounts currency region code.
      *
      * @return String - ISO 3166 alpha-2 country code or UN M.49 numeric-3 area code for the country that was used.
      */
@@ -238,6 +251,7 @@ class Account {
     }
 
     /**
+     * Get this accounts last transaction id.
      *
      * @return int - a variable that keeps track of the number of transaction object was created, this variable is
      * used to ensure uniqueness in the identifier for the transactions and does not represent the actual number of
@@ -248,6 +262,7 @@ class Account {
     }
 
     /**
+     *  Get the balance of this account as a BigDecimal
      *
      * @return a BigDecimal object representing the CURRENT balance -  it is a new object that will not update
      * with changes to the account.
@@ -257,6 +272,8 @@ class Account {
     }
 
     /**
+     * Get the balance of this account as formatted with the currency region.
+     *
      * @return String - the balance in english, as formatted as per standards for the country that was used to initialize
      * this account.
      */
@@ -266,6 +283,7 @@ class Account {
     }
 
     /**
+     *  get the unique identifier of this account's parent wallet.
      *
      * @return the UID of the parent wallet.
      */
@@ -274,6 +292,8 @@ class Account {
     }
 
     /**
+     * Returns a formatted version of any double using this account's currency region.
+     *
      * @param amount double -  a double representing the amount to be formatted.
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
@@ -283,6 +303,8 @@ class Account {
     }
 
     /**
+     * Returns a formatted version of any BigDecimal using this account's currency region.
+     *
      * @param amount BigDecimal -  a BigDecimal representing the amount to be formatted.
      *
      * @return String - a formatted version of the double passed in using this account's currency format.
