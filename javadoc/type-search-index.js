@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"uwallet.exceptions","l":"InsufficientFundsException"},{"p":"uwallet.exceptions","l":"NoSuchAccountInDatabaseException"},{"p":"uwallet","l":"Transaction"},{"p":"uwallet.exceptions","l":"UniqueAccountIDConstraintException"},{"p":"uwallet","l":"Wallet"}]

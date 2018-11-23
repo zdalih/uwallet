@@ -3,23 +3,26 @@ package uwallet;
 import uwallet.exceptions.InsufficientFundsException;
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 import uwallet.exceptions.UniqueAccountIDConstraintException;
+import uwallet.Transaction;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * RI: No two wallet can EVER be created with the same UID unless first ensures both the
+ *     persistent data stores are clear of references to the UID. A single wallet can
+ *     only be used for a single geographic region. No two accounts belonging to this wallet
+ *     can have identical names.
+ *
+ * AF: Wallet object holds multiple accounts of the same currency. It tracks these
+ *    accounts in a hashMap that maps the name of an account under this wallet to it's
+ *    unique identifier (which is created by the wallet) to load account objects.
+ *    methods interact with the accounts in the wallet through the account name that
+ *    was given to the account - of course this means no two account can have identical names.
+ */
 public class Wallet{
-    //RI: No two wallet can EVER be created with the same UID unless first ensures both the
-    // persistent data stores are clear of references to the UID. A single wallet can
-    // only be used for a single geographic region. No two accounts belonging to this wallet
-    // can have identical names.
-    //
-    //AF: Wallet object holds multiple accounts of the same currency. It tracks these
-    // accounts in a hashMap that maps the name of an account under this wallet to it's
-    // unique identifier (which is created by the wallet) to load account objects.
-    // methods interact with the accounts in the wallet through the account name that
-    // was given to the account - of course this means no two account can have identical names.
-    //
+
 
     private HashMap<String, String> acountNameToAccountIdMap =  new HashMap<String, String>();
     private String regionCode;
@@ -91,6 +94,8 @@ public class Wallet{
      *
      * @throws NoSuchAccountInDatabaseException
      *               if no such account in this wallet have the given name
+     *
+     * @return the formatted account balance using the region code for this wallet.
      */
     public String getAccountBalanceFormatted(String accountName) throws NoSuchAccountInDatabaseException{
         try{
@@ -109,6 +114,8 @@ public class Wallet{
      *
      * @throws NoSuchAccountInDatabaseException
      *               if no such account in this wallet have the given name
+     *
+     * @return the account balance as a BigDecimal.
      */
     public BigDecimal getAccountBalanceBigDecimal(String accountName) throws NoSuchAccountInDatabaseException{
         try{
@@ -196,8 +203,11 @@ public class Wallet{
      * @param accountName - String
      *                    the account whose transaction history we want to access
      *
-     * @return List<Transaction> - which is a list of length 0-N (limited by the total number of transactions for
-     *   the account) of the last 0-N transactions that are on file for this account.
+     * @param N - the number of records to return.
+     *
+     * @return a list of length 0-N (limited by the total number of transactions for
+     *   the account) of the last 0-N transactions that are on file for this account. The list is made
+     *   of Transaction objects
      *
      * @throws NoSuchAccountInDatabaseException
      *               if one of the two account name do not refer to a valid account for this wallet

@@ -2,21 +2,22 @@ package uwallet;
 
 import uwallet.exceptions.NoSuchAccountInDatabaseException;
 
-import java.sql.Time;
+
 import java.sql.Timestamp;
 import java.math.BigDecimal;
 
+/**
+ * RI: Each transaction must have a globally unique UUID, a timestamp created during call of it's creation, and
+ *     the endingBalance must only be defined after the transaction has been completed to the involved Account.
+ *     So after call to applyTransaction() which returns the endingBalance, it must set the endingBalance
+ *
+ * AF: This class represents an abstraction for a transaction. A transaction only refers to the substraction or
+ *      addition of value to an account - a transfer is made up of two transactions. It has the logic to calculate
+ *      the impact of a transaction on an account but does not modify the account, it simply returns the BigDecimal
+ *      result.
+ */
 public abstract class Transaction {
 
-    //RI: Each transaction must have a globally unique UUID, a timestamp created during call of it's creation, and
-    //    the endingBalance must only be defined after the transaction has been completed to the involved Account.
-    //    So after call to applyTransaction() which returns the endingBalance, it must set the endingBalance
-    //
-    //AF: This class represents an abstraction for a transaction. A transaction only refers to the substraction or
-    //    addition of value to an account - a transfer is made up of two transactions. It has the logic to calculate
-    //    the impact of a transaction on an account but does not modify the account, it simply returns the BigDecimal
-    //    result.
-    //
 
      final String uuid;
      final Timestamp timestamp;
