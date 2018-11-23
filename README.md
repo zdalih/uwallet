@@ -19,7 +19,7 @@ Wallet wallet = new Wallet("ID001", "US");
 Creation of a wallet will create a record in the persistent data. This allows one to get a ```Wallet``` object by it's id.
 
 ```java
-Wallet wallet = Wallet.loadWallet("ID001")
+Wallet wallet = Wallet.loadWallet("ID001");
 ```
 
 #### Wallet: Creating Accounts
